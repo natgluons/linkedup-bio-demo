@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkedUp – Professional Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #0a66c2; --blue-dark: #004182; --blue-light: #e8f0fb;
+    --bg: #f3f2ef; --white: #ffffff; --border: #e0ddd8;
+    --text: #191919; --text-sub: #666666; --text-muted: #999999;
+    --green: #057642; --card-radius: 8px;
+  }
+  body { font-family: 'Source Sans 3', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  nav { background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 52px; }
+  .nav-logo { font-size: 28px; font-weight: 700; color: var(--blue); letter-spacing: -1px; user-select: none; }
+  .nav-logo span { color: var(--text); }
+  .nav-btn { padding: 5px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; border: 1.5px solid var(--blue); cursor: pointer; background: transparent; color: var(--blue); transition: all .15s; }
+  .nav-btn:hover { background: var(--blue-light); }
+
+  .page { max-width: 860px; margin: 24px auto; padding: 0 12px; display: flex; flex-direction: column; gap: 12px; }
+  .card { background: var(--white); border-radius: var(--card-radius); border: 1px solid var(--border); overflow: hidden; }
+
+  /* PROFILE */
+  .profile-banner { height: 120px; background: linear-gradient(135deg, #0a66c2 0%, #1e88e5 50%, #0d47a1 100%); position: relative; cursor: pointer; overflow: hidden; }
+  .profile-banner img { width: 100%; height: 100%; object-fit: cover; }
+  .banner-edit-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(0,0,0,.35); opacity: 0; transition: opacity .2s; color: #fff; font-size: 13px; font-weight: 600; }
+  .profile-banner:hover .banner-edit-hint { opacity: 1; }
+  .profile-body { padding: 0 20px 20px; position: relative; }
+  .avatar-wrap { position: absolute; top: -52px; left: 20px; width: 104px; height: 104px; border-radius: 50%; border: 4px solid var(--white); background: #c0c0c0; overflow: hidden; cursor: pointer; box-shadow: 0 0 0 1px var(--border); }
+  .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-initials { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 700; color: #fff; background: #a0aec0; }
+  .profile-actions { display: flex; justify-content: flex-end; padding: 10px 0 0; gap: 8px; }
+  .btn-outline { padding: 5px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; border: 1.5px solid var(--text); cursor: pointer; background: transparent; color: var(--text); transition: all .15s; display: flex; align-items: center; gap: 6px; }
+  .btn-outline:hover { background: rgba(0,0,0,.05); }
+  .btn-primary { padding: 5px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; border: 1.5px solid var(--blue); cursor: pointer; background: var(--blue); color: #fff; transition: all .15s; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .profile-info { margin-top: 54px; }
+  .profile-name { font-size: 22px; font-weight: 700; line-height: 1.2; }
+  .profile-headline { font-size: 15px; color: var(--text); margin-top: 4px; }
+  .profile-location { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+  .profile-connections { font-size: 13px; color: var(--blue); font-weight: 600; margin-top: 4px; }
+  .profile-about { margin-top: 14px; font-size: 14px; line-height: 1.6; color: var(--text); white-space: pre-wrap; }
+  .open-badge { display: inline-block; background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px; margin-top: 6px; }
+
+  /* SECTION */
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; }
+  .section-title { font-size: 18px; font-weight: 700; }
+  .section-header-actions { display: flex; align-items: center; gap: 2px; }
+  .section-list { padding: 4px 20px 16px; display: flex; flex-direction: column; }
+
+  /* ICON BUTTONS */
+  .icon-btn { background: none; border: none; cursor: pointer; padding: 7px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background .15s; color: var(--text); }
+  .icon-btn:hover { background: var(--bg); }
+  .icon-btn svg { display: block; flex-shrink: 0; }
+
+  /* ENTRY */
+  .entry-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); position: relative; }
+  .entry-item:last-child { border-bottom: none; }
+  .entry-logo { width: 48px; height: 48px; border-radius: 4px; border: 1px solid var(--border); flex-shrink: 0; overflow: hidden; background: #d6d6d6; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .entry-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .entry-content { flex: 1; min-width: 0; padding-right: 64px; }
+  .entry-title { font-size: 14px; font-weight: 700; }
+  .entry-sub { font-size: 13px; color: var(--text); margin-top: 1px; }
+  .entry-date { font-size: 12px; color: var(--text-sub); margin-top: 1px; }
+  .entry-desc { font-size: 13px; color: var(--text); margin-top: 5px; line-height: 1.55; white-space: pre-wrap; }
+  .entry-skill-badge { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 12px; border: 1px solid var(--border); color: var(--text); margin: 4px 4px 0 0; }
+  .entry-actions { display: flex; gap: 2px; position: absolute; right: 0; top: 10px; opacity: 0; transition: opacity .15s; }
+  .entry-item:hover .entry-actions { opacity: 1; }
+
+  /* POSTS */
+  .post-composer { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+  .composer-avatar { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: #a0aec0; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
+  .composer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .composer-btn { flex: 1; padding: 10px 16px; border-radius: 24px; border: 1.5px solid var(--border); font-size: 14px; color: var(--text-sub); background: transparent; cursor: pointer; text-align: left; font-family: inherit; transition: background .15s; }
+  .composer-btn:hover { background: var(--bg); }
+  .post-item { padding: 16px 20px; border-bottom: 1px solid var(--border); position: relative; }
+  .post-item:last-child { border-bottom: none; }
+  .post-header { display: flex; gap: 10px; align-items: flex-start; }
+  .post-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; overflow: hidden; background: #a0aec0; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
+  .post-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .post-meta { flex: 1; }
+  .post-name { font-size: 14px; font-weight: 700; }
+  .post-headline-small { font-size: 12px; color: var(--text-sub); }
+  .post-time { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .post-body { font-size: 14px; line-height: 1.6; margin-top: 10px; white-space: pre-wrap; }
+  .post-image { margin-top: 10px; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+  .post-image img { width: 100%; display: block; max-height: 400px; object-fit: cover; }
+  .post-stats { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-sub); }
+  .post-actions { display: flex; margin-top: 2px; }
+  .post-action-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 4px; background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-sub); border-radius: 4px; font-family: inherit; transition: background .15s; }
+  .post-action-btn:hover { background: var(--bg); }
+  .post-action-btn.liked { color: var(--blue); }
+  .post-action-btn svg { width: 18px; height: 18px; }
+  .post-delete-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; cursor: pointer; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0; transition: opacity .15s, background .15s; }
+  .post-item:hover .post-delete-btn { opacity: 1; }
+  .post-delete-btn:hover { background: var(--bg); color: #c0392b; }
+  .divider { height: 1px; background: var(--border); }
+  .reaction-dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #fff; display: inline-flex; align-items: center; justify-content: center; margin-left: -4px; background: var(--blue); }
+  .reaction-dot:first-child { margin-left: 0; }
+  .reaction-dot svg { width: 9px; height: 9px; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal { background: var(--white); border-radius: 10px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,.3); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--white); z-index: 1; }
+  .modal-title { font-size: 18px; font-weight: 700; }
+  .modal-close { background: none; border: none; cursor: pointer; font-size: 22px; color: var(--text-sub); line-height: 1; padding: 2px 8px; border-radius: 50%; transition: background .15s; }
+  .modal-close:hover { background: var(--bg); }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+  label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+  input[type=text], input[type=email], textarea, select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 14px; color: var(--text); background: var(--white); transition: border-color .15s; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); }
+  textarea { resize: vertical; min-height: 90px; }
+  .logo-upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: border-color .15s; font-size: 13px; color: var(--text-sub); display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 60px; }
+  .logo-upload-area:hover { border-color: var(--blue); }
+  .logo-preview { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; }
+  .tags-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border: 1px solid var(--border); border-radius: 4px; cursor: text; }
+  .tags-input:focus-within { border-color: var(--blue); }
+  .tag { background: var(--blue-light); color: var(--blue); padding: 2px 10px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; gap: 4px; }
+  .tag button { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--blue); line-height: 1; padding: 0; }
+  .tags-input input { border: none; outline: none; font-family: inherit; font-size: 13px; min-width: 120px; flex: 1; padding: 2px 4px; background: transparent; }
+  .char-count { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- SVG SPRITE -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="ic-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+  </symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </symbol>
+  <symbol id="ic-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6"/><path d="M14 11v6"/>
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+  </symbol>
+  <symbol id="ic-like" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+  </symbol>
+  <symbol id="ic-like-filled" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+  </symbol>
+  <symbol id="ic-comment" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </symbol>
+  <symbol id="ic-repost" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+    <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+  </symbol>
+  <symbol id="ic-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13"/>
+    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+  </symbol>
+  <symbol id="ic-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </symbol>
+  <symbol id="ic-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+  </symbol>
+  <symbol id="ic-thumbup" viewBox="0 0 12 12" fill="white">
+    <path d="M7 4.5V2.5a1.5 1.5 0 0 0-1.5-1.5L3.5 5v5.5h5.64a1 1 0 0 0 1-.85l.69-4.5a1 1 0 0 0-1-.65H7zM3.5 10.5H2a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1h1.5"/>
+  </symbol>
+</svg>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">linked<span>up</span></div>
+  <button class="nav-btn" onclick="openModal('profileModal')">Edit Profile</button>
+</nav>
+
+<div class="page">
+
+  <!-- PROFILE CARD -->
+  <div class="card">
+    <div class="profile-banner" onclick="triggerUpload('bannerUpload')">
+      <img id="bannerImg" src="" alt="" style="display:none">
+      <div class="banner-edit-hint">
+        <svg width="16" height="16"><use href="#ic-camera"/></svg>
+        Change banner photo
+      </div>
+    </div>
+    <input type="file" id="bannerUpload" accept="image/*" class="hidden" onchange="uploadBanner(event)">
+    <input type="file" id="avatarUpload" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
+    <div class="profile-body">
+      <div class="avatar-wrap" onclick="triggerUpload('avatarUpload')">
+        <img id="avatarImg" src="" alt="" style="display:none">
+        <div class="avatar-initials" id="avatarInitials">FN</div>
+      </div>
+      <div class="profile-actions">
+        <button class="btn-outline" onclick="openModal('profileModal')">
+          <svg width="14" height="14"><use href="#ic-pencil"/></svg>
+          Edit profile
+        </button>
+        <button class="btn-primary">Connect</button>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name" id="pName">Full Name</div>
+        <div class="profile-headline" id="pHeadline">Senior Software Engineer at TechCorp Solutions</div>
+        <div class="profile-location" id="pLocation">San Francisco, California, United States</div>
+        <div class="profile-connections"><span id="pConnections">342</span> connections</div>
+        <div id="pOpenBadge" class="hidden"><span class="open-badge">Open to work</span></div>
+        <div class="profile-about" id="pAbout">Passionate software engineer with 8+ years of experience building scalable web applications. Specializing in full-stack development, cloud architecture, and leading cross-functional teams to deliver impactful products.
+
+Always looking to connect with fellow professionals and explore new opportunities.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPERIENCE -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-title">Experience</span>
+      <div class="section-header-actions">
+        <button class="icon-btn" onclick="openAddEntry('experience')" title="Add">
+          <svg width="20" height="20"><use href="#ic-plus"/></svg>
+        </button>
+        <button class="icon-btn" title="Edit">
+          <svg width="18" height="18"><use href="#ic-pencil"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="section-list" id="experienceList">
+      <div class="entry-item" data-id="exp1">
+        <div class="entry-logo" onclick="triggerLogoUpload('exp1')"></div>
+        <div class="entry-content">
+          <div class="entry-title">Senior Software Engineer</div>
+          <div class="entry-sub">TechCorp Solutions · Full-time</div>
+          <div class="entry-date">Jan 2021 – Present · 3 yrs 2 mos</div>
+          <div class="entry-desc">Led development of microservices architecture, reducing system latency by 40%. Mentored a team of 5 junior developers and collaborated with product teams across 3 time zones.</div>
+        </div>
+        <div class="entry-actions">
+          <button class="icon-btn" onclick="editEntry('exp1')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
+          <button class="icon-btn" onclick="deleteEntry('exp1')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+        </div>
+      </div>
+      <div class="entry-item" data-id="exp2">
+        <div class="entry-logo" onclick="triggerLogoUpload('exp2')"></div>
+        <div class="entry-content">
+          <div class="entry-title">Software Engineer</div>
+          <div class="entry-sub">Nexaflow Inc. · Full-time</div>
+          <div class="entry-date">Mar 2018 – Dec 2020 · 2 yrs 10 mos</div>
+          <div class="entry-desc">Developed and maintained RESTful APIs serving 500K+ daily users. Improved CI/CD pipelines and reduced deployment time by 60%.</div>
+        </div>
+        <div class="entry-actions">
+          <button class="icon-btn" onclick="editEntry('exp2')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
+          <button class="icon-btn" onclick="deleteEntry('exp2')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-title">Education</span>
+      <div class="section-header-actions">
+        <button class="icon-btn" onclick="openAddEntry('education')" title="Add">
+          <svg width="20" height="20"><use href="#ic-plus"/></svg>
+        </button>
+        <button class="icon-btn" title="Edit">
+          <svg width="18" height="18"><use href="#ic-pencil"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="section-list" id="educationList">
+      <div class="entry-item" data-id="edu1">
+        <div class="entry-logo" onclick="triggerLogoUpload('edu1')"></div>
+        <div class="entry-content">
+          <div class="entry-title">State University of Technology</div>
+          <div class="entry-sub">Bachelor of Science, Computer Science</div>
+          <div class="entry-date">2014 – 2018</div>
+          <div class="entry-desc">GPA: 3.7 · Dean's List · President of the Computer Science Society</div>
+        </div>
+        <div class="entry-actions">
+          <button class="icon-btn" onclick="editEntry('edu1')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
+          <button class="icon-btn" onclick="deleteEntry('edu1')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LICENSES -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-title">Licenses &amp; Certifications</span>
+      <div class="section-header-actions">
+        <button class="icon-btn" onclick="openAddEntry('license')" title="Add">
+          <svg width="20" height="20"><use href="#ic-plus"/></svg>
+        </button>
+        <button class="icon-btn" title="Edit">
+          <svg width="18" height="18"><use href="#ic-pencil"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="section-list" id="licenseList">
+      <div class="entry-item" data-id="lic1">
+        <div class="entry-logo" onclick="triggerLogoUpload('lic1')"></div>
+        <div class="entry-content">
+          <div class="entry-title">AWS Certified Solutions Architect – Professional</div>
+          <div class="entry-sub">Amazon Web Services (AWS)</div>
+          <div class="entry-date">Issued Jun 2022 · Expires Jun 2025</div>
+          <div class="entry-desc">Credential ID: AWS-PSA-00123456</div>
+        </div>
+        <div class="entry-actions">
+          <button class="icon-btn" onclick="editEntry('lic1')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
+          <button class="icon-btn" onclick="deleteEntry('lic1')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-title">Projects</span>
+      <div class="section-header-actions">
+        <button class="icon-btn" onclick="openAddEntry('project')" title="Add">
+          <svg width="20" height="20"><use href="#ic-plus"/></svg>
+        </button>
+        <button class="icon-btn" title="Edit">
+          <svg width="18" height="18"><use href="#ic-pencil"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="section-list" id="projectList">
+      <div class="entry-item" data-id="proj1">
+        <div class="entry-logo" onclick="triggerLogoUpload('proj1')"></div>
+        <div class="entry-content">
+          <div class="entry-title">CloudMetrics Dashboard</div>
+          <div class="entry-sub">Personal Project</div>
+          <div class="entry-date">Jan 2023 – Present</div>
+          <div class="entry-desc">Open-source real-time cloud cost monitoring tool with 1,200+ GitHub stars. Built with React, Node.js, and integrated with AWS, GCP, and Azure APIs.</div>
+          <div><span class="entry-skill-badge">React</span><span class="entry-skill-badge">Node.js</span><span class="entry-skill-badge">AWS</span></div>
+        </div>
+        <div class="entry-actions">
+          <button class="icon-btn" onclick="editEntry('proj1')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
+          <button class="icon-btn" onclick="deleteEntry('proj1')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-title">Activity</span>
+    </div>
+    <div class="post-composer">
+      <div class="composer-avatar" id="composerAvatar">
+        <img id="composerAvatarImg" src="" alt="" style="display:none">
+        <span id="composerAvatarTxt">FN</span>
+      </div>
+      <button class="composer-btn" onclick="openModal('postModal')">Start a post...</button>
+    </div>
+    <div id="postList">
+      <div class="post-item" data-postid="p1">
+        <div class="post-header">
+          <div class="post-avatar">
+            <img id="pAvatarImg_p1" src="" alt="" style="display:none">
+            <span id="pAvatarTxt_p1">FN</span>
+          </div>
+          <div class="post-meta">
+            <div class="post-name" id="pPostName_p1">Full Name</div>
+            <div class="post-headline-small" id="pPostHL_p1">Senior Software Engineer at TechCorp Solutions</div>
+            <div class="post-time">2h</div>
+          </div>
+        </div>
+        <div class="post-body">Excited to share that I have officially launched CloudMetrics Dashboard — a free, open-source tool for monitoring cloud costs across AWS, GCP, and Azure in real time.
+
+It has been 6 months of evenings and weekends but the community response has been incredible. Already at 1,200 GitHub stars!
+
+Share with anyone managing cloud infrastructure. Link in comments.
+
+#OpenSource #CloudComputing #AWS #BuildInPublic</div>
+        <div class="post-stats">
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="display:inline-flex">
+              <span class="reaction-dot"><svg width="9" height="9"><use href="#ic-thumbup"/></svg></span>
+            </span>
+            <span id="likeCount_p1">248</span>
+          </div>
+          <div>12 comments &middot; 34 reposts</div>
+        </div>
+        <div class="divider"></div>
+        <div class="post-actions">
+          <button class="post-action-btn" id="likeBtn_p1" onclick="toggleLike('p1')">
+            <svg width="18" height="18"><use href="#ic-like"/></svg> Like
+          </button>
+          <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-comment"/></svg> Comment</button>
+          <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-repost"/></svg> Repost</button>
+          <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-send"/></svg> Send</button>
+        </div>
+        <button class="post-delete-btn" onclick="deletePost('p1')" title="Delete">
+          <svg width="16" height="16"><use href="#ic-trash"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay hidden" id="profileModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Profile</span>
+      <button class="modal-close" onclick="closeModal('profileModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label>Full Name</label>
+        <input type="text" id="edit_name" value="Full Name" oninput="updateCC(this,'nc_name',60)" maxlength="60">
+        <div class="char-count"><span id="nc_name">9</span>/60</div>
+      </div>
+      <div>
+        <label>Headline</label>
+        <input type="text" id="edit_headline" value="Senior Software Engineer at TechCorp Solutions" oninput="updateCC(this,'nc_hl',220)" maxlength="220">
+        <div class="char-count"><span id="nc_hl">47</span>/220</div>
+      </div>
+      <div>
+        <label>Location</label>
+        <input type="text" id="edit_location" value="San Francisco, California, United States">
+      </div>
+      <div>
+        <label>Connections count</label>
+        <input type="text" id="edit_connections" value="342">
+      </div>
+      <div>
+        <label>About</label>
+        <textarea id="edit_about" rows="5">Passionate software engineer with 8+ years of experience building scalable web applications. Specializing in full-stack development, cloud architecture, and leading cross-functional teams to deliver impactful products.
+
+Always looking to connect with fellow professionals and explore new opportunities.</textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="edit_open" style="width:auto;cursor:pointer">
+        <label for="edit_open" style="margin:0;font-weight:normal;cursor:pointer">Show "Open to work" badge</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('profileModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveProfile()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- POST MODAL -->
+<div class="modal-overlay hidden" id="postModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Create a post</span>
+      <button class="modal-close" onclick="closeModal('postModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label>What do you want to talk about?</label>
+        <textarea id="post_text" rows="6" placeholder="Share an update, insight, or achievement..." oninput="updateCC(this,'nc_post',3000)" maxlength="3000"></textarea>
+        <div class="char-count"><span id="nc_post">0</span>/3000</div>
+      </div>
+      <div>
+        <label>Add an image (optional)</label>
+        <div class="logo-upload-area" onclick="triggerUpload('postImgUpload')" id="postImgArea">
+          <svg width="18" height="18"><use href="#ic-upload"/></svg>
+          <span id="postImgLabel">Click to upload image</span>
+        </div>
+        <img id="postImgPreview" class="hidden" style="max-height:200px;width:100%;object-fit:cover;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
+        <input type="file" id="postImgUpload" accept="image/*" class="hidden" onchange="previewPostImg(event)">
+      </div>
+      <div>
+        <label>Time label</label>
+        <input type="text" id="post_time" value="Just now">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('postModal')">Cancel</button>
+      <button class="btn-primary" onclick="addPost()">Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENTRY MODAL -->
+<div class="modal-overlay hidden" id="entryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="entryModalTitle">Add Experience</span>
+      <button class="modal-close" onclick="closeModal('entryModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="entryModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('entryModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="logoUploadHidden" accept="image/*" class="hidden" onchange="applyInlineLogo(event)">
+
+<script>
+// STATE
+const S = { avatar:'', name:'Full Name', headline:'Senior Software Engineer at TechCorp Solutions', postN:10, entryN:100 };
+let curType=null, curId=null, curLogoTarget=null, pendingImg='';
+const entries = {};
+['exp1','exp2','edu1','lic1','proj1'].forEach(id => { entries[id] = readDOM(id); });
+
+function $(id){ return document.getElementById(id); }
+function H(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function A(s){ return (s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function initials(n){ return (n||'FN').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function openModal(id){ $(id).classList.remove('hidden'); document.body.style.overflow='hidden'; }
+function closeModal(id){ $(id).classList.add('hidden'); document.body.style.overflow=''; curId=null; curType=null; }
+function triggerUpload(id){ $(id).click(); }
+function updateCC(el,cid){ $(cid).textContent=el.value.length; }
+
+function readDOM(id){
+  const el=document.querySelector(`[data-id="${id}"]`); if(!el) return {};
+  return {
+    title: el.querySelector('.entry-title')?.textContent||'',
+    sub: el.querySelector('.entry-sub')?.textContent||'',
+    date: el.querySelector('.entry-date')?.textContent||'',
+    desc: el.querySelector('.entry-desc')?.textContent||'',
+    logo: el.querySelector('.entry-logo img')?.src||'',
+    skills: [...el.querySelectorAll('.entry-skill-badge')].map(s=>s.textContent),
+  };
+}
+
+// AVATAR
+function uploadAvatar(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=d=>{ S.avatar=d.target.result; applyAvatar(); };
+  r.readAsDataURL(f);
+}
+function uploadBanner(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=d=>{ $('bannerImg').src=d.target.result; $('bannerImg').style.display='block'; };
+  r.readAsDataURL(f);
+}
+function applyAvatar(){
+  const a=S.avatar, ini=initials(S.name);
+  // main
+  if(a){ $('avatarImg').src=a; $('avatarImg').style.display='block'; $('avatarInitials').style.display='none'; }
+  else { $('avatarImg').style.display='none'; $('avatarInitials').style.display='flex'; $('avatarInitials').textContent=ini; }
+  // composer
+  if(a){ $('composerAvatarImg').src=a; $('composerAvatarImg').style.display='block'; $('composerAvatarTxt').style.display='none'; }
+  else { $('composerAvatarImg').style.display='none'; $('composerAvatarTxt').style.display='inline'; $('composerAvatarTxt').textContent=ini; }
+  // posts
+  document.querySelectorAll('[id^="pAvatarImg_"]').forEach(img=>{
+    const pid=img.id.replace('pAvatarImg_',''), txt=$('pAvatarTxt_'+pid);
+    if(a){ img.src=a; img.style.display='block'; if(txt) txt.style.display='none'; }
+    else { img.style.display='none'; if(txt){ txt.style.display='inline'; txt.textContent=ini; } }
+  });
+}
+
+// PROFILE SAVE
+function saveProfile(){
+  S.name=$('edit_name').value||'Full Name';
+  S.headline=$('edit_headline').value||'';
+  $('pName').textContent=S.name;
+  $('pHeadline').textContent=S.headline;
+  $('pLocation').textContent=$('edit_location').value||'';
+  $('pConnections').textContent=$('edit_connections').value||'0';
+  $('pAbout').textContent=$('edit_about').value||'';
+  $('edit_open').checked ? $('pOpenBadge').classList.remove('hidden') : $('pOpenBadge').classList.add('hidden');
+  $('avatarInitials').textContent=initials(S.name);
+  $('composerAvatarTxt').textContent=initials(S.name);
+  applyAvatar();
+  document.querySelectorAll('[id^="pPostName_"]').forEach(el=>el.textContent=S.name);
+  document.querySelectorAll('[id^="pPostHL_"]').forEach(el=>el.textContent=S.headline);
+  closeModal('profileModal');
+}
+
+// POSTS
+function toggleLike(pid){
+  const btn=$('likeBtn_'+pid), cnt=$('likeCount_'+pid);
+  const liked=btn.classList.contains('liked');
+  btn.classList.toggle('liked',!liked);
+  btn.innerHTML = liked
+    ? `<svg width="18" height="18"><use href="#ic-like"/></svg> Like`
+    : `<svg width="18" height="18"><use href="#ic-like-filled"/></svg> Liked`;
+  cnt.textContent=parseInt(cnt.textContent)+(liked?-1:1);
+}
+function previewPostImg(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=d=>{
+    pendingImg=d.target.result;
+    $('postImgPreview').src=d.target.result;
+    $('postImgPreview').classList.remove('hidden');
+    $('postImgLabel').textContent='Image selected';
+  };
+  r.readAsDataURL(f);
+}
+function addPost(){
+  const text=$('post_text').value.trim();
+  if(!text){ alert('Please write something first.'); return; }
+  const pid='p'+(++S.postN);
+  const ini=initials(S.name);
+  const imgHtml=pendingImg?`<div class="post-image"><img src="${pendingImg}" alt=""></div>`:'';
+  const avatarInner=S.avatar
+    ?`<img id="pAvatarImg_${pid}" src="${S.avatar}" alt="" style="width:100%;height:100%;object-fit:cover">`
+    :`<span id="pAvatarTxt_${pid}">${ini}</span>`;
+  const html=`
+<div class="post-item" data-postid="${pid}">
+  <div class="post-header">
+    <div class="post-avatar">${avatarInner}</div>
+    <div class="post-meta">
+      <div class="post-name" id="pPostName_${pid}">${H(S.name)}</div>
+      <div class="post-headline-small" id="pPostHL_${pid}">${H(S.headline)}</div>
+      <div class="post-time">${H($('post_time').value||'Just now')}</div>
+    </div>
+  </div>
+  <div class="post-body">${H(text)}</div>
+  ${imgHtml}
+  <div class="post-stats">
+    <div style="display:flex;align-items:center;gap:5px">
+      <span style="display:inline-flex"><span class="reaction-dot"><svg width="9" height="9"><use href="#ic-thumbup"/></svg></span></span>
+      <span id="likeCount_${pid}">0</span>
+    </div>
+    <div>0 comments</div>
+  </div>
+  <div class="divider"></div>
+  <div class="post-actions">
+    <button class="post-action-btn" id="likeBtn_${pid}" onclick="toggleLike('${pid}')">
+      <svg width="18" height="18"><use href="#ic-like"/></svg> Like
+    </button>
+    <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-comment"/></svg> Comment</button>
+    <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-repost"/></svg> Repost</button>
+    <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-send"/></svg> Send</button>
+  </div>
+  <button class="post-delete-btn" onclick="deletePost('${pid}')" title="Delete">
+    <svg width="16" height="16"><use href="#ic-trash"/></svg>
+  </button>
+</div>`;
+  $('postList').insertAdjacentHTML('afterbegin',html);
+  $('post_text').value=''; pendingImg='';
+  $('postImgPreview').classList.add('hidden');
+  $('postImgLabel').textContent='Click to upload image';
+  $('postImgUpload').value='';
+  closeModal('postModal');
+}
+function deletePost(pid){
+  if(!confirm('Delete this post?')) return;
+  document.querySelector(`[data-postid="${pid}"]`)?.remove();
+}
+
+// ENTRY CONFIG
+const EC={
+  experience:{ title:'Experience', list:'experienceList', fields:[
+    {id:'e_title',label:'Title',type:'text',ph:'e.g. Senior Software Engineer'},
+    {id:'e_company',label:'Company Name',type:'text',ph:'e.g. TechCorp Solutions'},
+    {id:'e_emptype',label:'Employment Type',type:'select',opts:['Full-time','Part-time','Freelance','Contract','Internship','Self-employed','Other']},
+    {id:'e_start',label:'Start Date',type:'text',ph:'e.g. Jan 2021'},
+    {id:'e_end',label:'End Date',type:'text',ph:'e.g. Present'},
+    {id:'e_loc',label:'Location',type:'text',ph:'e.g. San Francisco, CA'},
+    {id:'e_desc',label:'Description',type:'ta',ph:'Describe your role and achievements...'},
+  ]},
+  education:{ title:'Education', list:'educationList', fields:[
+    {id:'e_school',label:'School',type:'text',ph:'e.g. State University of Technology'},
+    {id:'e_degree',label:'Degree',type:'text',ph:'e.g. Bachelor of Science'},
+    {id:'e_field',label:'Field of Study',type:'text',ph:'e.g. Computer Science'},
+    {id:'e_start',label:'Start Year',type:'text',ph:'e.g. 2014'},
+    {id:'e_end',label:'End Year',type:'text',ph:'e.g. 2018'},
+    {id:'e_desc',label:'Activities / Description',type:'ta',ph:'GPA, activities, honors...'},
+  ]},
+  license:{ title:'License & Certification', list:'licenseList', fields:[
+    {id:'e_title',label:'Name',type:'text',ph:'e.g. AWS Certified Solutions Architect'},
+    {id:'e_org',label:'Issuing Organization',type:'text',ph:'e.g. Amazon Web Services'},
+    {id:'e_start',label:'Issue Date',type:'text',ph:'e.g. Jun 2022'},
+    {id:'e_end',label:'Expiration Date',type:'text',ph:'e.g. Jun 2025 or No expiration'},
+    {id:'e_credid',label:'Credential ID',type:'text',ph:'e.g. AWS-PSA-00123456'},
+  ]},
+  project:{ title:'Project', list:'projectList', fields:[
+    {id:'e_title',label:'Project Name',type:'text',ph:'e.g. CloudMetrics Dashboard'},
+    {id:'e_org',label:'Associated With',type:'text',ph:'e.g. Personal Project'},
+    {id:'e_start',label:'Start Date',type:'text',ph:'e.g. Jan 2023'},
+    {id:'e_end',label:'End Date',type:'text',ph:'e.g. Present'},
+    {id:'e_desc',label:'Description',type:'ta',ph:'Describe the project and your role...'},
+    {id:'e_skills',label:'Skills (press Enter to add)',type:'tags'},
+  ]},
+};
+
+function typeOf(el){
+  const m={experienceList:'experience',educationList:'education',licenseList:'license',projectList:'project'};
+  return m[el.closest('[id]')?.id]||'experience';
+}
+function openAddEntry(type){
+  curType=type; curId=null;
+  $('entryModalTitle').textContent='Add '+EC[type].title;
+  renderForm(EC[type],{});
+  openModal('entryModal');
+}
+function editEntry(id){
+  const el=document.querySelector(`[data-id="${id}"]`);
+  curType=typeOf(el); curId=id;
+  $('entryModalTitle').textContent='Edit '+EC[curType].title;
+  renderForm(EC[curType], entries[id]||{});
+  openModal('entryModal');
+}
+
+function fval(fid, d){
+  const m={
+    e_title:d.title||'',
+    e_company:(d.sub||'').split('·')[0].trim(),
+    e_emptype:(d.sub||'').split('·')[1]?.trim()||'Full-time',
+    e_school:d.title||'',
+    e_degree:(d.sub||'').split(',')[0].trim(),
+    e_field:(d.sub||'').split(',').slice(1).join(',').trim(),
+    e_org:d.sub||'',
+    e_credid:(d.desc||'').replace('Credential ID: ',''),
+    e_start:(d.date||'').replace(/Issued /,'').split(/[–·]/)[0].trim(),
+    e_end:(d.date||'').includes('–')?(d.date||'').split('–')[1]?.trim():((d.date||'').includes('Expires')?(d.date||'').split('Expires')[1]?.trim():''),
+    e_loc:'', e_desc:d.desc||'',
+  };
+  return m[fid]!==undefined?m[fid]:'';
+}
+
+function renderForm(cfg, d){
+  const logo=d.logo||'';
+  let h=`<div>
+    <label>Logo / Image</label>
+    <div class="logo-upload-area" onclick="triggerUpload('eLogo')" id="eLogoArea">
+      ${logo?`<img src="${logo}" class="logo-preview">`:`<svg width="18" height="18"><use href="#ic-upload"/></svg><span>Upload logo (optional)</span>`}
+    </div>
+    <input type="file" id="eLogo" accept="image/*" class="hidden" onchange="prevEntryLogo(event)">
+    <input type="hidden" id="e_logo" value="${A(logo)}">
+  </div>`;
+  cfg.fields.forEach(f=>{
+    h+='<div>';
+    if(f.type==='ta'){
+      h+=`<label>${f.label}</label><textarea id="${f.id}" rows="4" placeholder="${f.ph||''}">${H(fval(f.id,d))}</textarea>`;
+    } else if(f.type==='select'){
+      const v=fval(f.id,d);
+      h+=`<label>${f.label}</label><select id="${f.id}">${f.opts.map(o=>`<option${o===v?' selected':''}>${o}</option>`).join('')}</select>`;
+    } else if(f.type==='tags'){
+      const tags=d.skills||[];
+      h+=`<label>${f.label}</label>
+        <div class="tags-input" id="tagsWrap">
+          ${tags.map(t=>`<span class="tag">${H(t)}<button onclick="rmTag(this,'${A(t)}')">&#x2715;</button></span>`).join('')}
+          <input type="text" id="tagsIn" placeholder="Add skill..." onkeydown="addTag(event)">
+        </div>
+        <input type="hidden" id="e_skills_h" value="${A(tags.join(','))}">`;
+    } else {
+      h+=`<label>${f.label}</label><input type="text" id="${f.id}" value="${A(fval(f.id,d))}" placeholder="${f.ph||''}">`;
+    }
+    h+='</div>';
+  });
+  $('entryModalBody').innerHTML=h;
+}
+function prevEntryLogo(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=d=>{ $('e_logo').value=d.target.result; $('eLogoArea').innerHTML=`<img src="${d.target.result}" class="logo-preview">`; };
+  r.readAsDataURL(f);
+}
+function addTag(e){
+  if(e.key!=='Enter') return; e.preventDefault();
+  const inp=$('tagsIn'), val=inp.value.trim(); if(!val) return;
+  const h=$('e_skills_h'), ex=h.value?h.value.split(','):[];
+  if(ex.includes(val)){ inp.value=''; return; }
+  ex.push(val); h.value=ex.join(',');
+  const t=document.createElement('span'); t.className='tag';
+  t.innerHTML=`${H(val)}<button onclick="rmTag(this,'${A(val)}')">&#x2715;</button>`;
+  $('tagsWrap').insertBefore(t,inp); inp.value='';
+}
+function rmTag(btn,val){
+  btn.closest('.tag').remove();
+  const h=$('e_skills_h'); h.value=(h.value?h.value.split(','):[]).filter(t=>t!==val).join(',');
+}
+
+function saveEntry(){
+  const cfg=EC[curType], logo=$('e_logo')?.value||'';
+  let title='',sub='',date='',desc='',skills=[];
+  if(curType==='experience'){
+    title=$('e_title')?.value||'';
+    const co=$('e_company')?.value||'', et=$('e_emptype')?.value||'';
+    sub=co+(et?' · '+et:'');
+    const sd=$('e_start')?.value||'', ed=$('e_end')?.value||'';
+    date=sd+(ed?' – '+ed:'');
+    desc=$('e_desc')?.value||'';
+  } else if(curType==='education'){
+    title=$('e_school')?.value||'';
+    const dg=$('e_degree')?.value||'', fi=$('e_field')?.value||'';
+    sub=dg+(fi?', '+fi:'');
+    const sd=$('e_start')?.value||'', ed=$('e_end')?.value||'';
+    date=sd+(ed?' – '+ed:'');
+    desc=$('e_desc')?.value||'';
+  } else if(curType==='license'){
+    title=$('e_title')?.value||''; sub=$('e_org')?.value||'';
+    const sd=$('e_start')?.value||'', ed=$('e_end')?.value||'';
+    date=(sd?'Issued '+sd:'')+(ed?' · Expires '+ed:'');
+    const ci=$('e_credid')?.value||'';
+    desc=ci?'Credential ID: '+ci:'';
+  } else if(curType==='project'){
+    title=$('e_title')?.value||''; sub=$('e_org')?.value||'';
+    const sd=$('e_start')?.value||'', ed=$('e_end')?.value||'';
+    date=sd+(ed?' – '+ed:'');
+    desc=$('e_desc')?.value||'';
+    const sh=$('e_skills_h'); if(sh?.value) skills=sh.value.split(',').filter(Boolean);
+  }
+  const logoHtml=logo?`<img src="${logo}" alt="">`:'';
+  const skHtml=skills.length?`<div>${skills.map(s=>`<span class="entry-skill-badge">${H(s)}</span>`).join('')}</div>`:'';
+
+  if(curId){
+    const el=document.querySelector(`[data-id="${curId}"]`);
+    if(el){
+      el.querySelector('.entry-logo').innerHTML=logoHtml;
+      el.querySelector('.entry-title').textContent=title;
+      el.querySelector('.entry-sub').textContent=sub;
+      el.querySelector('.entry-date').textContent=date;
+      const de=el.querySelector('.entry-desc'); if(de) de.textContent=desc;
+      // refresh skills
+      const ec=el.querySelector('.entry-content');
+      const oldSk=ec.querySelector('div:last-child');
+      if(oldSk && oldSk.querySelector('.entry-skill-badge')) oldSk.remove();
+      if(skHtml){ const d=document.createElement('div'); d.innerHTML=skHtml; ec.appendChild(d.firstChild); }
+    }
+    entries[curId]={title,sub,date,desc,logo,skills};
+  } else {
+    const nid='e'+(++S.entryN);
+    const html=`
+<div class="entry-item" data-id="${nid}">
+  <div class="entry-logo" onclick="triggerLogoUpload('${nid}')">${logoHtml}</div>
+  <div class="entry-content">
+    <div class="entry-title">${H(title)}</div>
+    <div class="entry-sub">${H(sub)}</div>
+    <div class="entry-date">${H(date)}</div>
+    ${desc?`<div class="entry-desc">${H(desc)}</div>`:''}
+    ${skHtml}
+  </div>
+  <div class="entry-actions">
+    <button class="icon-btn" onclick="editEntry('${nid}')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
+    <button class="icon-btn" onclick="deleteEntry('${nid}')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+  </div>
+</div>`;
+    $(cfg.list).insertAdjacentHTML('beforeend',html);
+    entries[nid]={title,sub,date,desc,logo,skills};
+  }
+  closeModal('entryModal');
+}
+function deleteEntry(id){
+  if(!confirm('Delete this entry?')) return;
+  document.querySelector(`[data-id="${id}"]`)?.remove();
+  delete entries[id];
+}
+function triggerLogoUpload(id){ curLogoTarget=id; $('logoUploadHidden').click(); }
+function applyInlineLogo(e){
+  const f=e.target.files[0]; if(!f||!curLogoTarget) return;
+  const r=new FileReader();
+  r.onload=d=>{
+    const el=document.querySelector(`[data-id="${curLogoTarget}"] .entry-logo`);
+    if(el) el.innerHTML=`<img src="${d.target.result}" alt="">`;
+    if(entries[curLogoTarget]) entries[curLogoTarget].logo=d.target.result;
+    $('logoUploadHidden').value='';
+  };
+  r.readAsDataURL(f);
+}
+
+window.onload =()=>{
+  updateCC({value:'Full Name'},'nc_name');
+  updateCC({value:'Senior Software Engineer at TechCorp Solutions'},'nc_hl');
+  updateCC({value:''},'nc_post');
+};
+</script>
+</body>
+</html>
