@@ -128,6 +128,89 @@
   .char-count { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px; }
   .hidden { display: none !important; }
 </style>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f2ee; color: rgba(0,0,0,.9); font-size: 14px; }
+  nav { display: block; padding: 0; height: auto; background: #fff; border-bottom: 1px solid rgba(0,0,0,.08); position: sticky; top: 0; z-index: 100; }
+  .nav-inner { max-width: 1128px; margin: 0 auto; height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 8px; }
+  .nav-logo { font-size: 22px; font-weight: 700; color: #0a66c2; letter-spacing: -.5px; text-decoration: none; display: flex; align-items: center; }
+  .nav-logo span { color: rgba(0,0,0,.9); }
+  .nav-search { flex: 0 1 280px; display: flex; align-items: center; gap: 8px; background: #edf3f8; border-radius: 4px; padding: 0 10px; height: 34px; color: rgba(0,0,0,.6); }
+  .nav-search input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: rgba(0,0,0,.9); padding: 0; }
+  .nav-links { display: flex; align-items: stretch; height: 52px; margin-left: auto; }
+  .nav-link { width: 72px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: rgba(0,0,0,.6); font-size: 12px; border-bottom: 2px solid transparent; padding: 0 2px; font-family: inherit; }
+  .nav-link svg { width: 22px; height: 22px; }
+  .nav-link:hover { color: rgba(0,0,0,.9); }
+  .nav-link.active { color: rgba(0,0,0,.9); border-bottom-color: rgba(0,0,0,.9); }
+  .nav-actions { display: flex; align-items: center; gap: 6px; margin-left: 8px; padding-left: 12px; border-left: 1px solid rgba(0,0,0,.08); height: 36px; }
+  #saveStatus { font-size: 11px; color: rgba(0,0,0,.6); white-space: nowrap; }
+  .nav-btn { padding: 5px 12px; font-size: 13px; }
+  .nav-me { border: none; background: none; display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 12px; color: rgba(0,0,0,.6); padding: 0 4px; font-family: inherit; }
+  .nav-me:hover { color: rgba(0,0,0,.9); }
+  .nav-avatar { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; background: #7a8b99; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+  .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .nav-more-wrap { position: relative; }
+  .nav-more-btn { padding: 5px 8px; }
+  .nav-menu { position: absolute; right: 0; top: calc(100% + 8px); background: #fff; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,.2); min-width: 180px; padding: 6px; z-index: 200; }
+  .nav-menu button { display: block; width: 100%; text-align: left; padding: 9px 12px; border: none; background: none; border-radius: 6px; font-size: 14px; color: rgba(0,0,0,.9); font-family: inherit; }
+  .nav-menu button:hover { background: #f3f2ef; }
+  .page { max-width: 1128px; margin: 20px auto 60px; padding: 0 16px; display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 20px; align-items: start; }
+  .main-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .sidebar { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 72px; }
+  .card { border: 1px solid rgba(0,0,0,.08); box-shadow: 0 0 0 1px rgba(0,0,0,.02); border-radius: 8px; }
+  .profile-banner { height: 200px; }
+  .avatar-wrap { width: 152px; height: 152px; top: -76px; left: 24px; border-width: 4px; }
+  .avatar-initials { font-size: 48px; }
+  .profile-body { padding: 0 24px 24px; }
+  .profile-actions { padding-top: 12px; }
+  .profile-info { margin-top: 88px; }
+  .profile-name { font-size: 24px; }
+  .profile-headline { font-size: 16px; }
+  .profile-location, .profile-connections { font-size: 14px; }
+  .profile-about { font-size: 14px; line-height: 1.6; margin-top: 0; }
+  .section-header { padding: 20px 24px 0; }
+  .section-title { font-size: 20px; }
+  .section-list { padding: 12px 24px 20px; }
+  .entry-item { padding: 16px 0; gap: 16px; }
+  .entry-logo { width: 48px; height: 48px; }
+  .entry-title { font-size: 16px; }
+  .entry-sub { font-size: 14px; }
+  .entry-date { font-size: 13px; color: rgba(0,0,0,.6); }
+  .entry-desc { font-size: 14px; }
+  .entry-skill-badge { background: #f3f2ef; border: 1px solid rgba(0,0,0,.1); font-size: 12px; }
+  .post-composer { padding: 16px 24px; }
+  .composer-btn { border-radius: 24px; }
+  .post-item { padding: 16px 24px; }
+  .post-body { font-size: 14px; }
+  .post-action-btn { font-size: 13px; }
+  .side-card { padding: 16px; }
+  .side-title { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+  .side-muted { font-size: 13px; color: rgba(0,0,0,.6); line-height: 1.5; margin-bottom: 10px; }
+  .side-link { border: none; background: none; color: #0a66c2; font-size: 13px; font-weight: 600; padding: 0; text-align: left; font-family: inherit; }
+  .side-link:hover { text-decoration: underline; }
+  .strength-track { height: 6px; border-radius: 3px; background: #e9e5df; overflow: hidden; margin-bottom: 6px; }
+  .strength-track span { display: block; height: 100%; width: 0; background: #0a66c2; transition: width .25s; }
+  .btn-block { width: 100%; margin-top: 8px; }
+  .btn-primary, .btn-outline { border-radius: 20px; }
+  .icon-btn { color: rgba(0,0,0,.6); }
+  .modal { border-radius: 10px; }
+  .modal-title { font-size: 20px; }
+  input[type=text], input[type=email], textarea, select { border-color: rgba(0,0,0,.3); }
+  @media (max-width: 1000px) { .nav-links { display: none; } .nav-search { flex: 1; } }
+  @media (max-width: 900px) { .page { grid-template-columns: 1fr; } .sidebar { display: none; } }
+  @media (max-width: 640px) {
+    .nav-search { display: none; }
+    .nav-actions { margin-left: auto; border-left: none; padding-left: 0; }
+    #saveStatus, .nav-actions .nav-btn { display: none; }
+    .profile-info { margin-top: 78px; }
+    .avatar-wrap { width: 120px; height: 120px; top: -60px; left: 16px; }
+    .avatar-initials { font-size: 40px; }
+    .profile-body { padding: 0 16px 20px; }
+    .section-header { padding: 16px 16px 0; }
+    .section-list { padding: 10px 16px 16px; }
+    .post-item, .post-composer { padding-left: 16px; padding-right: 16px; }
+    .entry-actions { opacity: 1; }
+  }
+</style>
 </head>
 <body>
 
@@ -176,6 +259,22 @@
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
     <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
   </symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/>
+  </symbol>
+  <symbol id="ic-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/>
+  </symbol>
+  <symbol id="ic-network" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="6" r="3"/><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/>
+    <path d="M12 9v3M7 16l3-2M17 16l-3-2"/>
+  </symbol>
+  <symbol id="ic-briefcase" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+  </symbol>
+  <symbol id="ic-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </symbol>
   <symbol id="ic-thumbup" viewBox="0 0 12 12" fill="white">
     <path d="M7 4.5V2.5a1.5 1.5 0 0 0-1.5-1.5L3.5 5v5.5h5.64a1 1 0 0 0 1-.85l.69-4.5a1 1 0 0 0-1-.65H7zM3.5 10.5H2a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1h1.5"/>
   </symbol>
@@ -183,19 +282,44 @@
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">linked<span>up</span></div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <span id="saveStatus" style="font-size:12px;color:var(--text-sub)"></span>
-    <button class="nav-btn" onclick="openTemplates()">Templates</button>
-    <button class="nav-btn" onclick="exportData()">Export</button>
-    <button class="nav-btn" onclick="triggerDataImport()">Import</button>
-    <button class="nav-btn" onclick="saveNow()">Save</button>
-    <button class="nav-btn" onclick="openProfileModal()">Edit Profile</button>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">linked<span>up</span></a>
+    <div class="nav-search">
+      <svg width="16" height="16"><use href="#ic-search"/></svg>
+      <input type="text" placeholder="Search" aria-label="Search" onkeydown="if(event.key==='Enter'){event.preventDefault();alert('Search is not available in this preview.');}">
+    </div>
+    <div class="nav-links">
+      <button class="nav-link active" onclick="window.scrollTo({top:0,behavior:'smooth'})"><svg><use href="#ic-home"/></svg><span>Home</span></button>
+      <button class="nav-link" onclick="scrollToId('experienceList')"><svg><use href="#ic-network"/></svg><span>Network</span></button>
+      <button class="nav-link" onclick="scrollToId('postList')"><svg><use href="#ic-briefcase"/></svg><span>Jobs</span></button>
+      <button class="nav-link" onclick="alert('Messaging is not part of this preview.')"><svg><use href="#ic-comment"/></svg><span>Messaging</span></button>
+      <button class="nav-link" onclick="alert('Notifications are not part of this preview.')"><svg><use href="#ic-bell"/></svg><span>Notifications</span></button>
+    </div>
+    <div class="nav-actions">
+      <span id="saveStatus"></span>
+      <button class="nav-btn" onclick="openTemplates()">Templates</button>
+      <button class="nav-btn" onclick="saveNow()">Save</button>
+      <button class="nav-me" onclick="openProfileModal()">
+        <span class="nav-avatar" id="navAvatar">FN</span>
+        <span>Me</span>
+      </button>
+      <div class="nav-more-wrap">
+        <button class="nav-btn nav-more-btn" onclick="toggleNavMore()" title="More">&#8942;</button>
+        <div class="nav-menu hidden" id="navMore">
+          <button onclick="exportData()">Export data</button>
+          <button onclick="triggerDataImport()">Import data</button>
+          <button onclick="openProfileModal()">Edit profile</button>
+          <button onclick="openTemplates()">Templates</button>
+        </div>
+      </div>
+    </div>
   </div>
 </nav>
 <input type="file" id="dataImport" accept=".json,application/json" class="hidden" onchange="importData(event)">
 
 <div class="page">
+
+<main class="main-col">
 
   <!-- PROFILE CARD -->
   <div class="card">
@@ -226,10 +350,24 @@
         <div class="profile-location" id="pLocation">San Francisco, California, United States</div>
         <div class="profile-connections"><span id="pConnections">342</span> connections</div>
         <div id="pOpenBadge" class="hidden"><span class="open-badge">Open to work</span></div>
-        <div class="profile-about" id="pAbout">Passionate software engineer with 8+ years of experience building scalable web applications. Specializing in full-stack development, cloud architecture, and leading cross-functional teams to deliver impactful products.
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="card" id="aboutCard">
+    <div class="section-header">
+      <span class="section-title">About</span>
+      <div class="section-header-actions">
+        <button class="icon-btn" onclick="openProfileModal()" title="Edit about">
+          <svg width="18" height="18"><use href="#ic-pencil"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="section-list">
+      <div class="profile-about" id="pAbout">Passionate software engineer with 8+ years of experience building scalable web applications. Specializing in full-stack development, cloud architecture, and leading cross-functional teams to deliver impactful products.
 
 Always looking to connect with fellow professionals and explore new opportunities.</div>
-      </div>
     </div>
   </div>
 
@@ -423,6 +561,28 @@ Share with anyone managing cloud infrastructure. Link in comments.
     </div>
   </div>
 
+</main>
+
+<aside class="sidebar">
+  <div class="card side-card">
+    <div class="side-title">Profile strength</div>
+    <div class="strength-track"><span id="strengthBar"></span></div>
+    <div class="side-muted" id="strengthLabel">Just starting</div>
+    <button class="side-link" onclick="openProfileModal()">Complete your profile</button>
+  </div>
+  <div class="card side-card">
+    <div class="side-title">Templates &amp; storage</div>
+    <p class="side-muted">Save profiles in this browser or load the local PII sample from <code>storage/</code>. Those files are gitignored.</p>
+    <button class="btn-primary btn-block" onclick="openTemplates()">Manage templates</button>
+    <button class="btn-outline btn-block" onclick="exportData()">Export data</button>
+    <button class="btn-outline btn-block" onclick="triggerDataImport()">Import data</button>
+  </div>
+  <div class="card side-card">
+    <div class="side-title">Preview only</div>
+    <p class="side-muted">Nothing is sent to a server. Your profile is saved in this browser until you clear it.</p>
+  </div>
+</aside>
+
 </div>
 
 <!-- PROFILE MODAL -->
@@ -613,6 +773,25 @@ function openModal(id){ $(id).classList.remove('hidden'); document.body.style.ov
 function closeModal(id){ $(id).classList.add('hidden'); document.body.style.overflow=''; curId=null; curType=null; }
 function triggerUpload(id){ $(id).click(); }
 function updateCC(el,cid){ $(cid).textContent=el.value.length; }
+function scrollToId(id){ const el=$(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+function toggleNavMore(){ $('navMore')?.classList.toggle('hidden'); }
+function updateStrength(){
+  const bar=$('strengthBar'), label=$('strengthLabel');
+  if(!bar||!label) return;
+  const checks=[
+    S.name&&S.name!=='Full Name',
+    $('pHeadline')&&$('pHeadline').textContent.trim(),
+    $('pLocation')&&$('pLocation').textContent.trim(),
+    $('pAbout')&&$('pAbout').textContent.trim(),
+    S.avatar,
+    $('bannerImg')&&$('bannerImg').getAttribute('src'),
+    Object.keys(entries).length>0,
+    $('postList')&&$('postList').children.length>0,
+  ];
+  const score=Math.round(checks.filter(Boolean).length/checks.length*100);
+  bar.style.width=score+'%';
+  label.textContent=score>=80?'All-star':score>=50?'Intermediate':score>0?'Getting started':'Just starting';
+}
 
 function readDOM(id){
   const el=document.querySelector(`[data-id="${id}"]`); if(!el) return {};
@@ -707,6 +886,8 @@ function applyAvatar(){
   document.querySelectorAll('.post-avatar').forEach(el=>{
     el.innerHTML=a?`<img src="${A(a)}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<span>${H(ini)}</span>`;
   });
+  const navAvatar=$('navAvatar');
+  if(navAvatar) navAvatar.innerHTML=a?`<img src="${A(a)}" alt="">`:`<span>${H(ini)}</span>`;
 }
 
 // PROFILE SAVE
@@ -1059,12 +1240,14 @@ function applyState(st){
   applyAvatar();
   applyProfileToPosts();
   updateSaveStatus();
+  updateStrength();
 }
 
 function persist(){
   try{
     localStorage.setItem(LS_KEY,JSON.stringify(collectState()));
     updateSaveStatus();
+    updateStrength();
   }catch(e){
     console.warn('Could not save locally',e);
   }
@@ -1121,6 +1304,7 @@ function initPersistence(){
     if(raw) applyState(JSON.parse(raw));
   }catch(e){ console.warn('Could not load saved profile',e); }
   updateSaveStatus();
+  updateStrength();
 }
 initPersistence();
 
@@ -1369,6 +1553,11 @@ function exportTemplates(){
   a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.nav-more-wrap')) $('navMore')?.classList.add('hidden');
+});
+document.querySelectorAll('#navMore button').forEach(b=>b.addEventListener('click',()=>$('navMore')?.classList.add('hidden')));
 
 window.onload =()=>{
   updateCC({value:'Full Name'},'nc_name');
