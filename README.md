@@ -12,20 +12,29 @@ Crafting the perfect professional update requires exact phrasing and clean forma
 
 *   **Real-Time Preview:** See exactly how your post or bio will look on the feed as you type.
 *   **Accurate Formatting:** Tests line breaks and spacing exactly as they will render on a professional social media feed.
-*   **Zero Dependencies:** Built entirely with plain HTML, CSS, and Vanilla JavaScript. 
-*   **Privacy First:** Everything runs locally in your browser. No data is saved, sent to a server, or cached.
+*   **Local Persistence:** Profile details, experience, education, licenses, projects, skills, posts, and images are saved in this browser. The app reloads the last saved profile automatically.
+*   **Import / Export:** Download a `profile-data.local.json` backup or import it later.
+*   **Templates:** Load the local sample template from `storage/`, save the current profile as a template, add templates from JSON, and download templates back into `storage/`.
+*   **Logo Assets:** Company and school logos are supported in templates and can be changed or uploaded per entry.
+*   **Zero Dependencies:** Built entirely with plain HTML, CSS, and Vanilla JavaScript.
+*   **Privacy First:** Everything runs locally in your browser. Nothing is sent to a server.
+
+## Local-only files
+
+The `storage/` directory is ignored by git. It can contain the sample PII template, its images, and template exports. Do not commit those files.
+
+Because browsers block `fetch()` for local files, opening `index.html` directly may prevent loading `storage/template_sample_pii.json`. Either use the **Choose file** option in the Templates dialog, or serve the folder locally.
 
 ## Usage
 
-Since this is a client-side only application, getting started is completely frictionless.
-
-**Option 1: Use the Web Version (Recommended)**
-Simply navigate to the [GitHub Pages environment](https://natgluons.github.io/linkedup-bio-demo/) and start typing in the draft box. 
+**Option 1: Use the Web Version**
+Navigate to the [GitHub Pages environment](https://natgluons.github.io/linkedup-bio-demo/) and start editing. GitHub Pages cannot serve the gitignored `storage/` files, so use JSON import there.
 
 **Option 2: Run Locally**
-1. Clone this repository:
-   git clone https://natgluons.github.io/linkedup-bio-demo/
-2. Navigate to the directory and open index.html directly in your browser. No build steps, servers, or package managers required.
+1. Clone this repository.
+2. Serve the directory so the `storage/` sample can load:
+   python3 -m http.server
+3. Open `http://localhost:8000` and use **Templates → Load sample**.
 
 ## Tech Stack
 HTML5: Semantic structure for the post container.
