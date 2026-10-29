@@ -171,6 +171,10 @@
     <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
     <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
   </symbol>
+  <symbol id="ic-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+  </symbol>
   <symbol id="ic-thumbup" viewBox="0 0 12 12" fill="white">
     <path d="M7 4.5V2.5a1.5 1.5 0 0 0-1.5-1.5L3.5 5v5.5h5.64a1 1 0 0 0 1-.85l.69-4.5a1 1 0 0 0-1-.65H7zM3.5 10.5H2a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1h1.5"/>
   </symbol>
@@ -181,6 +185,7 @@
   <div class="nav-logo">linked<span>up</span></div>
   <div style="display:flex;gap:8px;align-items:center">
     <span id="saveStatus" style="font-size:12px;color:var(--text-sub)"></span>
+    <button class="nav-btn" onclick="openTemplates()">Templates</button>
     <button class="nav-btn" onclick="exportData()">Export</button>
     <button class="nav-btn" onclick="triggerDataImport()">Import</button>
     <button class="nav-btn" onclick="saveNow()">Save</button>
@@ -512,6 +517,83 @@ Always looking to connect with fellow professionals and explore new opportunitie
   </div>
 </div>
 
+<!-- TEMPLATES MODAL -->
+<div class="modal-overlay hidden" id="templatesModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Templates</span>
+      <button class="modal-close" onclick="closeModal('templatesModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-sub)">Templates are stored locally in this browser. Files under <code>storage/</code> are gitignored and never pushed.</p>
+      <div style="border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;gap:12px;align-items:flex-start">
+        <div style="width:42px;height:42px;border-radius:8px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22"><use href="#ic-upload"/></svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700">Sample PII template</div>
+          <div style="font-size:12px;color:var(--text-sub);margin-top:2px">Loads <code>storage/template_sample_pii.json</code>. Local-only, never committed.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn-primary" onclick="loadSampleTemplate()">Load sample</button>
+            <button class="btn-outline" onclick="triggerTemplateImport('apply')">Choose file</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <strong>My templates</strong>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline" onclick="saveCurrentAsTemplate()">Save current</button>
+          <button class="btn-primary" onclick="openTemplateForm()">Add template</button>
+        </div>
+      </div>
+      <div id="templateList"></div>
+      <div style="font-size:12px;color:var(--text-sub)">Use the download button to export a template into <code>storage/</code>.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="triggerTemplateImport('add')">Import file</button>
+      <button class="btn-outline" onclick="exportTemplates()">Export all</button>
+      <button class="btn-primary" onclick="closeModal('templatesModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE FORM MODAL -->
+<div class="modal-overlay hidden" id="templateFormModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add template</span>
+      <button class="modal-close" onclick="closeModal('templateFormModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label for="tpl_name">Template name</label>
+        <input type="text" id="tpl_name" placeholder="e.g. Product designer profile">
+      </div>
+      <div>
+        <label for="tpl_source">Source URL (optional)</label>
+        <input type="text" id="tpl_source" placeholder="https://...">
+      </div>
+      <div>
+        <label for="tpl_json">Template JSON</label>
+        <textarea id="tpl_json" rows="10" placeholder='{"profile":{...},"experience":[...]}'></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="tpl_apply" style="width:auto">
+        <label for="tpl_apply" style="margin:0;font-weight:400">Load this template after saving</label>
+      </div>
+      <div>
+        <button class="btn-outline" onclick="triggerTemplateFormFile()">Choose JSON file</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('templateFormModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveTemplateForm()">Save template</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="templateImport" accept=".json,application/json" class="hidden" onchange="handleTemplateImport(event)">
+<input type="file" id="templateFormFile" accept=".json,application/json" class="hidden" onchange="handleTemplateFormFile(event)">
 <input type="file" id="logoUploadHidden" accept="image/*" class="hidden" onchange="applyInlineLogo(event)">
 
 <script>
@@ -1040,6 +1122,252 @@ function initPersistence(){
   updateSaveStatus();
 }
 initPersistence();
+
+const TPL_KEY='linkedup.templates.v1';
+let templates=[];
+try{
+  templates=JSON.parse(localStorage.getItem(TPL_KEY)||'[]');
+  if(!Array.isArray(templates)) templates=[];
+}catch(e){ templates=[]; }
+let templateImportMode='apply';
+
+function readJsonFile(file,onload){
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{ onload(JSON.parse(ev.target.result)); }
+    catch(e){ alert('Invalid JSON: '+e.message); }
+  };
+  r.readAsText(file);
+}
+
+function templateToState(raw){
+  const src=raw&&raw.data?raw.data:raw;
+  if(!src||typeof src!=='object') throw new Error('Invalid template data');
+  if(src.entries&&src.sections&&src.profile) return src;
+  const profile=src.profile||{};
+  const entries={};
+  const sections={experienceList:[],educationList:[],licenseList:[],projectList:[]};
+  let entryN=100;
+  function add(listId,d){
+    const id='t'+(++entryN);
+    entries[id]=d;
+    sections[listId].push(id);
+  }
+  (src.experience||[]).forEach(e=>add('experienceList',{
+    title:e.title||'',
+    sub:[e.company,e.employmentType].filter(Boolean).join(' · '),
+    date:[e.start,e.end].filter(Boolean).join(' – '),
+    desc:e.desc||'',
+    logo:e.logo||'',
+    skills:Array.isArray(e.skills)?e.skills:[],
+  }));
+  (src.education||[]).forEach(e=>add('educationList',{
+    title:e.school||'',
+    sub:[e.degree,e.field].filter(Boolean).join(', '),
+    date:[e.start,e.end].filter(Boolean).join(' – '),
+    desc:e.desc||'',
+    logo:e.logo||'',
+    skills:Array.isArray(e.skills)?e.skills:[],
+  }));
+  (src.license||[]).forEach(e=>{
+    const date=[e.issueDate?'Issued '+e.issueDate:'',e.expiryDate?'Expires '+e.expiryDate:''].filter(Boolean).join(' · ');
+    add('licenseList',{
+      title:e.name||'',
+      sub:e.org||'',
+      date,
+      desc:e.credentialId?'Credential ID: '+e.credentialId:'',
+      logo:e.logo||'',
+      skills:Array.isArray(e.skills)?e.skills:[],
+    });
+  });
+  (src.project||[]).forEach(e=>add('projectList',{
+    title:e.name||'',
+    sub:e.associated||'',
+    date:[e.start,e.end].filter(Boolean).join(' – '),
+    desc:e.desc||'',
+    logo:e.logo||'',
+    skills:Array.isArray(e.skills)?e.skills:[],
+  }));
+  const posts=(src.posts||[]).map((p,i)=>({
+    id:p.id||('tp'+(i+1)),
+    text:p.text||'',
+    image:p.image||'',
+    time:p.time||'Just now',
+    reactions:Number(p.reactions)||0,
+    comments:Number(p.comments)||0,
+    liked:!!p.liked,
+  }));
+  return {
+    version:1,
+    savedAt:new Date().toISOString(),
+    profile:{
+      name:profile.name||'Full Name',
+      headline:profile.headline||'',
+      location:profile.location||'',
+      connections:profile.connections||'0',
+      about:profile.about||'',
+      openToWork:!!profile.openToWork,
+      avatar:profile.avatar||'',
+      banner:profile.banner||'',
+    },
+    entries,
+    sections,
+    posts,
+    counters:{postN:Math.max(10,posts.length+10),entryN},
+  };
+}
+
+function applyTemplate(raw,name){
+  let st;
+  try{ st=templateToState(raw); }
+  catch(e){ alert('Could not load template: '+e.message); return; }
+  if(!confirm('Load template "'+(name||'template')+'"? This replaces your current profile.')) return;
+  applyState(st);
+  persist();
+  closeModal('templatesModal');
+  closeModal('templateFormModal');
+}
+
+function applyTemplateById(id){
+  const t=templates.find(x=>x.id===id);
+  if(t) applyTemplate(t.data,t.name);
+}
+
+function addTemplateRecord(raw,name,source){
+  const record={
+    id:'tpl_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    name:name||'Untitled template',
+    source:source||raw.source||'',
+    createdAt:new Date().toISOString(),
+    data:raw.data||raw,
+  };
+  templates.push(record);
+  saveTemplates();
+  renderTemplates();
+  return record;
+}
+
+function saveTemplates(){
+  try{ localStorage.setItem(TPL_KEY,JSON.stringify(templates)); }
+  catch(e){ alert('Could not save template: '+e.message); }
+}
+
+function renderTemplates(){
+  const el=$('templateList'); if(!el) return;
+  if(!templates.length){
+    el.innerHTML='<p style="font-size:13px;color:var(--text-sub);padding:6px 0">No saved templates yet.</p>';
+    return;
+  }
+  el.innerHTML=templates.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:600">${H(t.name)}</div>
+      <div style="font-size:12px;color:var(--text-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.source?H(t.source):'Local template'} · ${new Date(t.createdAt).toLocaleDateString()}</div>
+    </div>
+    <button class="btn-outline" style="padding:4px 10px" onclick="applyTemplateById('${A(t.id)}')">Load</button>
+    <button class="icon-btn" onclick="downloadTemplate('${A(t.id)}')" title="Download"><svg width="16" height="16"><use href="#ic-download"/></svg></button>
+    <button class="icon-btn" onclick="deleteTemplate('${A(t.id)}')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+  </div>`).join('');
+}
+
+function openTemplates(){
+  renderTemplates();
+  openModal('templatesModal');
+}
+
+function loadSampleTemplate(){
+  if(!window.fetch){ alert('This browser cannot read storage files. Use “Choose file” instead.'); return; }
+  fetch('storage/template_sample_pii.json',{cache:'no-store'})
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(raw=>applyTemplate(raw,raw.name||'Sample PII template'))
+    .catch(err=>alert('Could not read storage/template_sample_pii.json.\n\n'+err.message+'\n\nRun the app through a local server (e.g. python3 -m http.server) or use “Choose file”.'));
+}
+
+function openTemplateForm(preset){
+  $('tpl_name').value=(preset&&preset.name)||'';
+  $('tpl_source').value=(preset&&preset.source)||'';
+  $('tpl_json').value=(preset&&preset.json)||'';
+  $('tpl_apply').checked=false;
+  openModal('templateFormModal');
+}
+
+function saveCurrentAsTemplate(){
+  openTemplateForm({name:(S.name||'My profile')+' template',json:JSON.stringify(collectState(),null,2)});
+}
+
+function triggerTemplateImport(mode){
+  templateImportMode=mode||'apply';
+  $('templateImport').click();
+}
+
+function handleTemplateImport(e){
+  const f=e.target.files[0]; if(!f) return;
+  readJsonFile(f,raw=>{
+    if(templateImportMode==='apply') applyTemplate(raw,raw.name||f.name);
+    else addTemplateRecord(raw,raw.name||f.name.replace(/\.json$/i,''));
+    e.target.value='';
+  });
+}
+
+function triggerTemplateFormFile(){ $('templateFormFile').click(); }
+
+function handleTemplateFormFile(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    $('tpl_json').value=ev.target.result;
+    if(!$('tpl_name').value) $('tpl_name').value=f.name.replace(/\.json$/i,'');
+    e.target.value='';
+  };
+  r.readAsText(f);
+}
+
+function saveTemplateForm(){
+  const name=$('tpl_name').value.trim()||'Untitled template';
+  const source=$('tpl_source').value.trim();
+  const json=$('tpl_json').value.trim();
+  if(!json){ alert('Paste or choose template JSON first.'); return; }
+  let raw;
+  try{ raw=JSON.parse(json); }
+  catch(e){ alert('Invalid JSON: '+e.message); return; }
+  const record=addTemplateRecord(raw,name,source);
+  const apply=$('tpl_apply').checked;
+  closeModal('templateFormModal');
+  if(apply) applyTemplate(record.data,record.name);
+}
+
+function deleteTemplate(id){
+  if(!confirm('Delete this template?')) return;
+  templates=templates.filter(t=>t.id!==id);
+  saveTemplates();
+  renderTemplates();
+}
+
+function safeFileName(s){
+  return (s||'template').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'template';
+}
+
+function downloadTemplate(id){
+  const t=templates.find(x=>x.id===id); if(!t) return;
+  const blob=new Blob([JSON.stringify(t,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=safeFileName(t.name)+'.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function exportTemplates(){
+  const blob=new Blob([JSON.stringify(templates,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='templates.local.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
 
 window.onload =()=>{
   updateCC({value:'Full Name'},'nc_name');
