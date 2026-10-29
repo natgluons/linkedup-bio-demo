@@ -181,6 +181,11 @@
   .entry-more { display: none; margin-top: 4px; padding: 0; border: none; background: none; color: rgba(0,0,0,.6); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
   .entry-more.visible { display: inline-block; }
   .entry-more:hover { color: #0a66c2; text-decoration: underline; }
+  .profile-about.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .profile-about.clamp.expanded { display: block; -webkit-line-clamp: unset; overflow: visible; }
+  .about-more { display: none; margin-top: 4px; padding: 0; border: none; background: none; color: rgba(0,0,0,.6); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .about-more.visible { display: inline-block; }
+  .about-more:hover { color: #0a66c2; text-decoration: underline; }
   .entry-skill-badge { background: #f3f2ef; border: 1px solid rgba(0,0,0,.1); font-size: 12px; }
   .post-composer { padding: 16px 24px; }
   .composer-btn { border-radius: 24px; }
@@ -373,6 +378,7 @@
       <div class="profile-about" id="pAbout">Passionate software engineer with 8+ years of experience building scalable web applications. Specializing in full-stack development, cloud architecture, and leading cross-functional teams to deliver impactful products.
 
 Always looking to connect with fellow professionals and explore new opportunities.</div>
+      <button class="about-more" id="aboutMore" onclick="toggleAbout()">…more</button>
     </div>
   </div>
 
@@ -827,6 +833,26 @@ function refreshEntryClamps(){
   });
 }
 
+function toggleAbout(){
+  const desc=$('pAbout'), btn=$('aboutMore');
+  if(!desc||!btn) return;
+  const expanded=desc.classList.toggle('expanded');
+  btn.textContent=expanded?'Show less':'…more';
+}
+
+function refreshAboutClamp(reset){
+  const desc=$('pAbout'), btn=$('aboutMore');
+  if(!desc||!btn) return;
+  desc.classList.add('clamp');
+  if(reset){
+    desc.classList.remove('expanded');
+    btn.textContent='…more';
+  }
+  if(!desc.classList.contains('expanded')){
+    btn.classList.toggle('visible',desc.scrollHeight>desc.clientHeight+1);
+  }
+}
+
 function readDOM(id){
   const el=document.querySelector(`[data-id="${id}"]`); if(!el) return {};
   return {
@@ -952,6 +978,7 @@ function saveProfile(){
   $('avatarInitials').textContent=initials(S.name);
   applyAvatar();
   applyProfileToPosts();
+  refreshAboutClamp(true);
   persist();
   closeModal('profileModal');
 }
@@ -1261,6 +1288,7 @@ function applyState(st){
   S.entryN=Math.max(100,st.counters?.entryN||100,...Object.keys(entries).map(x=>parseInt(String(x).replace(/\D/g,''))||0));
   applyAvatar();
   applyProfileToPosts();
+  refreshAboutClamp(true);
   updateSaveStatus();
   updateStrength();
 }
@@ -1330,10 +1358,11 @@ function initPersistence(){
 }
 initPersistence();
 refreshEntryClamps();
+refreshAboutClamp(true);
 
 window.addEventListener('resize',()=>{
   clearTimeout(window.__entryClampTimer);
-  window.__entryClampTimer=setTimeout(refreshEntryClamps,150);
+  window.__entryClampTimer=setTimeout(()=>{ refreshEntryClamps(); refreshAboutClamp(false); },150);
 });
 
 const TPL_KEY='linkedup.templates.v1';
