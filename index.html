@@ -179,8 +179,15 @@
 <!-- NAV -->
 <nav>
   <div class="nav-logo">linked<span>up</span></div>
-  <button class="nav-btn" onclick="openModal('profileModal')">Edit Profile</button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="saveStatus" style="font-size:12px;color:var(--text-sub)"></span>
+    <button class="nav-btn" onclick="exportData()">Export</button>
+    <button class="nav-btn" onclick="triggerDataImport()">Import</button>
+    <button class="nav-btn" onclick="saveNow()">Save</button>
+    <button class="nav-btn" onclick="openProfileModal()">Edit Profile</button>
+  </div>
 </nav>
+<input type="file" id="dataImport" accept=".json,application/json" class="hidden" onchange="importData(event)">
 
 <div class="page">
 
@@ -201,7 +208,7 @@
         <div class="avatar-initials" id="avatarInitials">FN</div>
       </div>
       <div class="profile-actions">
-        <button class="btn-outline" onclick="openModal('profileModal')">
+        <button class="btn-outline" onclick="openProfileModal()">
           <svg width="14" height="14"><use href="#ic-pencil"/></svg>
           Edit profile
         </button>
@@ -370,12 +377,11 @@ Always looking to connect with fellow professionals and explore new opportunitie
       <div class="post-item" data-postid="p1">
         <div class="post-header">
           <div class="post-avatar">
-            <img id="pAvatarImg_p1" src="" alt="" style="display:none">
-            <span id="pAvatarTxt_p1">FN</span>
+            <span>FN</span>
           </div>
           <div class="post-meta">
-            <div class="post-name" id="pPostName_p1">Full Name</div>
-            <div class="post-headline-small" id="pPostHL_p1">Senior Software Engineer at TechCorp Solutions</div>
+            <div class="post-name">Full Name</div>
+            <div class="post-headline-small">Senior Software Engineer at TechCorp Solutions</div>
             <div class="post-time">2h</div>
           </div>
         </div>
@@ -391,13 +397,13 @@ Share with anyone managing cloud infrastructure. Link in comments.
             <span style="display:inline-flex">
               <span class="reaction-dot"><svg width="9" height="9"><use href="#ic-thumbup"/></svg></span>
             </span>
-            <span id="likeCount_p1">248</span>
+            <span class="like-count">248</span>
           </div>
           <div>12 comments &middot; 34 reposts</div>
         </div>
         <div class="divider"></div>
         <div class="post-actions">
-          <button class="post-action-btn" id="likeBtn_p1" onclick="toggleLike('p1')">
+          <button class="post-action-btn" onclick="toggleLike('p1')">
             <svg width="18" height="18"><use href="#ic-like"/></svg> Like
           </button>
           <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-comment"/></svg> Comment</button>
@@ -510,6 +516,7 @@ Always looking to connect with fellow professionals and explore new opportunitie
 
 <script>
 // STATE
+const LS_KEY='linkedup.state.v1';
 const S = { avatar:'', name:'Full Name', headline:'Senior Software Engineer at TechCorp Solutions', postN:10, entryN:100 };
 let curType=null, curId=null, curLogoTarget=null, pendingImg='';
 const entries = {};
@@ -536,36 +543,105 @@ function readDOM(id){
   };
 }
 
+function entryHTML(id,d){
+  const logo=d.logo?`<img src="${A(d.logo)}" alt="">`:'';
+  const skills=(d.skills||[]).length
+    ? `<div>${d.skills.map(s=>`<span class="entry-skill-badge">${H(s)}</span>`).join('')}</div>`:'';
+  return `<div class="entry-item" data-id="${A(id)}">
+    <div class="entry-logo" onclick="triggerLogoUpload('${A(id)}')">${logo}</div>
+    <div class="entry-content">
+      <div class="entry-title">${H(d.title)}</div>
+      <div class="entry-sub">${H(d.sub)}</div>
+      <div class="entry-date">${H(d.date)}</div>
+      ${d.desc?`<div class="entry-desc">${H(d.desc)}</div>`:''}
+      ${skills}
+    </div>
+    <div class="entry-actions">
+      <button class="icon-btn" onclick="editEntry('${A(id)}')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
+      <button class="icon-btn" onclick="deleteEntry('${A(id)}')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+    </div>
+  </div>`;
+}
+
+function postHTML(p){
+  const ini=initials(S.name);
+  const avatar=S.avatar?`<img src="${A(S.avatar)}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<span>${H(ini)}</span>`;
+  const img=p.image?`<div class="post-image"><img src="${A(p.image)}" alt=""></div>`:'';
+  const liked=!!p.liked;
+  return `<div class="post-item" data-postid="${A(p.id)}">
+    <div class="post-header">
+      <div class="post-avatar">${avatar}</div>
+      <div class="post-meta">
+        <div class="post-name">${H(S.name)}</div>
+        <div class="post-headline-small">${H(S.headline)}</div>
+        <div class="post-time">${H(p.time||'Just now')}</div>
+      </div>
+    </div>
+    <div class="post-body">${H(p.text)}</div>
+    ${img}
+    <div class="post-stats">
+      <div style="display:flex;align-items:center;gap:5px">
+        <span style="display:inline-flex"><span class="reaction-dot"><svg width="9" height="9"><use href="#ic-thumbup"/></svg></span></span>
+        <span class="like-count">${Number(p.reactions)||0}</span>
+      </div>
+      <div>${Number(p.comments)||0} comments</div>
+    </div>
+    <div class="divider"></div>
+    <div class="post-actions">
+      <button class="post-action-btn ${liked?'liked':''}" onclick="toggleLike('${A(p.id)}')">
+        <svg width="18" height="18"><use href="#${liked?'ic-like-filled':'ic-like'}"/></svg> ${liked?'Liked':'Like'}
+      </button>
+      <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-comment"/></svg> Comment</button>
+      <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-repost"/></svg> Repost</button>
+      <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-send"/></svg> Send</button>
+    </div>
+    <button class="post-delete-btn" onclick="deletePost('${A(p.id)}')" title="Delete">
+      <svg width="16" height="16"><use href="#ic-trash"/></svg>
+    </button>
+  </div>`;
+}
+
 // AVATAR
 function uploadAvatar(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=d=>{ S.avatar=d.target.result; applyAvatar(); };
+  r.onload=d=>{ S.avatar=d.target.result; applyAvatar(); persist(); };
   r.readAsDataURL(f);
 }
 function uploadBanner(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=d=>{ $('bannerImg').src=d.target.result; $('bannerImg').style.display='block'; };
+  r.onload=d=>{ $('bannerImg').src=d.target.result; $('bannerImg').style.display='block'; persist(); };
   r.readAsDataURL(f);
 }
 function applyAvatar(){
   const a=S.avatar, ini=initials(S.name);
-  // main
   if(a){ $('avatarImg').src=a; $('avatarImg').style.display='block'; $('avatarInitials').style.display='none'; }
   else { $('avatarImg').style.display='none'; $('avatarInitials').style.display='flex'; $('avatarInitials').textContent=ini; }
-  // composer
-  if(a){ $('composerAvatarImg').src=a; $('composerAvatarImg').style.display='block'; $('composerAvatarTxt').style.display='none'; }
-  else { $('composerAvatarImg').style.display='none'; $('composerAvatarTxt').style.display='inline'; $('composerAvatarTxt').textContent=ini; }
-  // posts
-  document.querySelectorAll('[id^="pAvatarImg_"]').forEach(img=>{
-    const pid=img.id.replace('pAvatarImg_',''), txt=$('pAvatarTxt_'+pid);
-    if(a){ img.src=a; img.style.display='block'; if(txt) txt.style.display='none'; }
-    else { img.style.display='none'; if(txt){ txt.style.display='inline'; txt.textContent=ini; } }
+  document.querySelectorAll('.composer-avatar').forEach(el=>{
+    el.innerHTML=a?`<img src="${A(a)}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<span>${H(ini)}</span>`;
+  });
+  document.querySelectorAll('.post-avatar').forEach(el=>{
+    el.innerHTML=a?`<img src="${A(a)}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<span>${H(ini)}</span>`;
   });
 }
 
 // PROFILE SAVE
+function openProfileModal(){
+  $('edit_name').value=$('pName').textContent;
+  $('edit_headline').value=$('pHeadline').textContent;
+  $('edit_location').value=$('pLocation').textContent;
+  $('edit_connections').value=$('pConnections').textContent;
+  $('edit_about').value=$('pAbout').textContent;
+  $('edit_open').checked=!$('pOpenBadge').classList.contains('hidden');
+  updateCC($('edit_name'),'nc_name');
+  updateCC($('edit_headline'),'nc_hl');
+  openModal('profileModal');
+}
+function applyProfileToPosts(){
+  document.querySelectorAll('#postList .post-name').forEach(el=>el.textContent=S.name);
+  document.querySelectorAll('#postList .post-headline-small').forEach(el=>el.textContent=S.headline);
+}
 function saveProfile(){
   S.name=$('edit_name').value||'Full Name';
   S.headline=$('edit_headline').value||'';
@@ -576,22 +652,24 @@ function saveProfile(){
   $('pAbout').textContent=$('edit_about').value||'';
   $('edit_open').checked ? $('pOpenBadge').classList.remove('hidden') : $('pOpenBadge').classList.add('hidden');
   $('avatarInitials').textContent=initials(S.name);
-  $('composerAvatarTxt').textContent=initials(S.name);
   applyAvatar();
-  document.querySelectorAll('[id^="pPostName_"]').forEach(el=>el.textContent=S.name);
-  document.querySelectorAll('[id^="pPostHL_"]').forEach(el=>el.textContent=S.headline);
+  applyProfileToPosts();
+  persist();
   closeModal('profileModal');
 }
 
 // POSTS
 function toggleLike(pid){
-  const btn=$('likeBtn_'+pid), cnt=$('likeCount_'+pid);
+  const post=document.querySelector(`[data-postid="${pid}"]`); if(!post) return;
+  const btn=post.querySelector('.post-action-btn');
+  const cnt=post.querySelector('.like-count');
   const liked=btn.classList.contains('liked');
   btn.classList.toggle('liked',!liked);
   btn.innerHTML = liked
     ? `<svg width="18" height="18"><use href="#ic-like"/></svg> Like`
     : `<svg width="18" height="18"><use href="#ic-like-filled"/></svg> Liked`;
-  cnt.textContent=parseInt(cnt.textContent)+(liked?-1:1);
+  cnt.textContent=Math.max(0,(parseInt(cnt.textContent)||0)+(liked?-1:1));
+  persist();
 }
 function previewPostImg(e){
   const f=e.target.files[0]; if(!f) return;
@@ -607,54 +685,27 @@ function previewPostImg(e){
 function addPost(){
   const text=$('post_text').value.trim();
   if(!text){ alert('Please write something first.'); return; }
-  const pid='p'+(++S.postN);
-  const ini=initials(S.name);
-  const imgHtml=pendingImg?`<div class="post-image"><img src="${pendingImg}" alt=""></div>`:'';
-  const avatarInner=S.avatar
-    ?`<img id="pAvatarImg_${pid}" src="${S.avatar}" alt="" style="width:100%;height:100%;object-fit:cover">`
-    :`<span id="pAvatarTxt_${pid}">${ini}</span>`;
-  const html=`
-<div class="post-item" data-postid="${pid}">
-  <div class="post-header">
-    <div class="post-avatar">${avatarInner}</div>
-    <div class="post-meta">
-      <div class="post-name" id="pPostName_${pid}">${H(S.name)}</div>
-      <div class="post-headline-small" id="pPostHL_${pid}">${H(S.headline)}</div>
-      <div class="post-time">${H($('post_time').value||'Just now')}</div>
-    </div>
-  </div>
-  <div class="post-body">${H(text)}</div>
-  ${imgHtml}
-  <div class="post-stats">
-    <div style="display:flex;align-items:center;gap:5px">
-      <span style="display:inline-flex"><span class="reaction-dot"><svg width="9" height="9"><use href="#ic-thumbup"/></svg></span></span>
-      <span id="likeCount_${pid}">0</span>
-    </div>
-    <div>0 comments</div>
-  </div>
-  <div class="divider"></div>
-  <div class="post-actions">
-    <button class="post-action-btn" id="likeBtn_${pid}" onclick="toggleLike('${pid}')">
-      <svg width="18" height="18"><use href="#ic-like"/></svg> Like
-    </button>
-    <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-comment"/></svg> Comment</button>
-    <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-repost"/></svg> Repost</button>
-    <button class="post-action-btn"><svg width="18" height="18"><use href="#ic-send"/></svg> Send</button>
-  </div>
-  <button class="post-delete-btn" onclick="deletePost('${pid}')" title="Delete">
-    <svg width="16" height="16"><use href="#ic-trash"/></svg>
-  </button>
-</div>`;
-  $('postList').insertAdjacentHTML('afterbegin',html);
+  const post={
+    id:'p'+(++S.postN),
+    text,
+    image:pendingImg,
+    time:$('post_time').value||'Just now',
+    reactions:0,
+    comments:0,
+    liked:false,
+  };
+  $('postList').insertAdjacentHTML('afterbegin',postHTML(post));
   $('post_text').value=''; pendingImg='';
   $('postImgPreview').classList.add('hidden');
   $('postImgLabel').textContent='Click to upload image';
   $('postImgUpload').value='';
+  persist();
   closeModal('postModal');
 }
 function deletePost(pid){
   if(!confirm('Delete this post?')) return;
   document.querySelector(`[data-postid="${pid}"]`)?.remove();
+  persist();
 }
 
 // ENTRY CONFIG
@@ -831,30 +882,17 @@ function saveEntry(){
     entries[curId]={title,sub,date,desc,logo,skills};
   } else {
     const nid='e'+(++S.entryN);
-    const html=`
-<div class="entry-item" data-id="${nid}">
-  <div class="entry-logo" onclick="triggerLogoUpload('${nid}')">${logoHtml}</div>
-  <div class="entry-content">
-    <div class="entry-title">${H(title)}</div>
-    <div class="entry-sub">${H(sub)}</div>
-    <div class="entry-date">${H(date)}</div>
-    ${desc?`<div class="entry-desc">${H(desc)}</div>`:''}
-    ${skHtml}
-  </div>
-  <div class="entry-actions">
-    <button class="icon-btn" onclick="editEntry('${nid}')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
-    <button class="icon-btn" onclick="deleteEntry('${nid}')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
-  </div>
-</div>`;
-    $(cfg.list).insertAdjacentHTML('beforeend',html);
+    $(cfg.list).insertAdjacentHTML('beforeend',entryHTML(nid,{title,sub,date,desc,logo,skills}));
     entries[nid]={title,sub,date,desc,logo,skills};
   }
+  persist();
   closeModal('entryModal');
 }
 function deleteEntry(id){
   if(!confirm('Delete this entry?')) return;
   document.querySelector(`[data-id="${id}"]`)?.remove();
   delete entries[id];
+  persist();
 }
 function triggerLogoUpload(id){ curLogoTarget=id; $('logoUploadHidden').click(); }
 function applyInlineLogo(e){
@@ -865,9 +903,143 @@ function applyInlineLogo(e){
     if(el) el.innerHTML=`<img src="${d.target.result}" alt="">`;
     if(entries[curLogoTarget]) entries[curLogoTarget].logo=d.target.result;
     $('logoUploadHidden').value='';
+    persist();
   };
   r.readAsDataURL(f);
 }
+
+function collectState(){
+  const sections={};
+  ['experienceList','educationList','licenseList','projectList'].forEach(listId=>{
+    sections[listId]=[...document.querySelectorAll(`#${listId} .entry-item`)].map(el=>el.dataset.id);
+  });
+  const posts=[...document.querySelectorAll('#postList .post-item')].map(el=>{
+    const likeBtn=el.querySelector('.post-action-btn');
+    const stats=el.querySelector('.post-stats > div:last-child');
+    return {
+      id:el.dataset.postid,
+      text:el.querySelector('.post-body')?.textContent||'',
+      image:el.querySelector('.post-image img')?.src||'',
+      time:el.querySelector('.post-time')?.textContent||'',
+      reactions:parseInt(el.querySelector('.like-count')?.textContent||'0')||0,
+      comments:parseInt((stats?.textContent||'').match(/\d+/)?.[0]||'0')||0,
+      liked:!!(likeBtn&&likeBtn.classList.contains('liked')),
+    };
+  });
+  return {
+    version:1,
+    savedAt:new Date().toISOString(),
+    profile:{
+      name:$('pName').textContent,
+      headline:$('pHeadline').textContent,
+      location:$('pLocation').textContent,
+      connections:$('pConnections').textContent,
+      about:$('pAbout').textContent,
+      openToWork:!$('pOpenBadge').classList.contains('hidden'),
+      avatar:S.avatar,
+      banner:$('bannerImg').src||'',
+    },
+    entries:JSON.parse(JSON.stringify(entries)),
+    sections,
+    posts,
+    counters:{postN:S.postN,entryN:S.entryN},
+  };
+}
+
+function applyState(st){
+  if(!st||typeof st!=='object') throw new Error('Invalid saved profile');
+  const p=st.profile||{};
+  S.name=p.name||'Full Name';
+  S.headline=p.headline||'';
+  S.avatar=p.avatar||'';
+  $('pName').textContent=S.name;
+  $('pHeadline').textContent=S.headline;
+  $('pLocation').textContent=p.location||'';
+  $('pConnections').textContent=p.connections||'0';
+  $('pAbout').textContent=p.about||'';
+  $('pOpenBadge').classList.toggle('hidden',!p.openToWork);
+  if(p.banner){ $('bannerImg').src=p.banner; $('bannerImg').style.display='block'; }
+  else { $('bannerImg').removeAttribute('src'); $('bannerImg').style.display='none'; }
+  $('avatarInitials').textContent=initials(S.name);
+  Object.keys(entries).forEach(k=>delete entries[k]);
+  const savedEntries=st.entries||{};
+  Object.keys(savedEntries).forEach(k=>{ entries[k]=savedEntries[k]; });
+  const sections=st.sections||{};
+  ['experienceList','educationList','licenseList','projectList'].forEach(listId=>{
+    const ids=Array.isArray(sections[listId])?sections[listId]:[];
+    $(listId).innerHTML=ids.map(id=>entries[id]?entryHTML(id,entries[id]):'').join('');
+  });
+  const posts=Array.isArray(st.posts)?st.posts:[];
+  $('postList').innerHTML=posts.map(postHTML).join('');
+  S.postN=Math.max(10,st.counters?.postN||10,...posts.map(x=>parseInt(String(x.id).replace(/\D/g,''))||0));
+  S.entryN=Math.max(100,st.counters?.entryN||100,...Object.keys(entries).map(x=>parseInt(String(x).replace(/\D/g,''))||0));
+  applyAvatar();
+  applyProfileToPosts();
+  updateSaveStatus();
+}
+
+function persist(){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify(collectState()));
+    updateSaveStatus();
+  }catch(e){
+    console.warn('Could not save locally',e);
+  }
+}
+
+function updateSaveStatus(){
+  const el=$('saveStatus'); if(!el) return;
+  const raw=localStorage.getItem(LS_KEY);
+  if(!raw){ el.textContent='Not saved'; return; }
+  try{
+    const st=JSON.parse(raw);
+    el.textContent=st.savedAt?`Saved ${new Date(st.savedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`:'Saved locally';
+  }catch(e){ el.textContent='Saved locally'; }
+}
+
+function saveNow(){ persist(); updateSaveStatus(); }
+
+function exportData(){
+  const payload={name:'Local saved profile',source:'',createdAt:new Date().toISOString(),data:collectState()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='profile-data.local.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function triggerDataImport(){ $('dataImport').click(); }
+
+function importData(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const raw=JSON.parse(ev.target.result);
+      const st=raw&&raw.data?raw.data:raw;
+      if(!st.entries||!st.sections) throw new Error('This JSON is not a saved profile export.');
+      applyState(st);
+      persist();
+      alert('Saved profile loaded.');
+    }catch(err){
+      alert('Could not import: '+err.message);
+    }
+    e.target.value='';
+  };
+  r.readAsText(f);
+}
+
+function initPersistence(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw) applyState(JSON.parse(raw));
+  }catch(e){ console.warn('Could not load saved profile',e); }
+  updateSaveStatus();
+}
+initPersistence();
 
 window.onload =()=>{
   updateCC({value:'Full Name'},'nc_name');
