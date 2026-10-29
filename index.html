@@ -1146,7 +1146,7 @@ function saveEntry(){
     entries[curId]={title,sub,date,desc,logo,skills};
   } else {
     const nid='e'+(++S.entryN);
-    $(cfg.list).insertAdjacentHTML('beforeend',entryHTML(nid,{title,sub,date,desc,logo,skills}));
+    $(cfg.list).insertAdjacentHTML('afterbegin',entryHTML(nid,{title,sub,date,desc,logo,skills}));
     entries[nid]={title,sub,date,desc,logo,skills};
   }
   persist();
