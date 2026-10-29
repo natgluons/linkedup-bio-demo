@@ -186,6 +186,20 @@
   .about-more { display: none; margin-top: 4px; padding: 0; border: none; background: none; color: rgba(0,0,0,.6); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
   .about-more.visible { display: inline-block; }
   .about-more:hover { color: #0a66c2; text-decoration: underline; }
+  #projectList .entry-logo { display: none; }
+  .section-toggle { font-size: 12px; font-weight: 600; color: #0a66c2; background: none; border: none; padding: 4px 8px; border-radius: 12px; font-family: inherit; cursor: pointer; }
+  .section-toggle:hover { background: #eaf3fd; }
+  .section-toggle[aria-pressed="false"] { color: rgba(0,0,0,.6); }
+  .exp-group { border-bottom: 1px solid var(--border); padding: 16px 0; }
+  .exp-group:last-child { border-bottom: none; padding-bottom: 0; }
+  .exp-company { display: flex; gap: 16px; align-items: flex-start; }
+  .exp-company-logo { width: 48px; height: 48px; border-radius: 4px; border: 1px solid var(--border); overflow: hidden; background: #d6d6d6; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .exp-company-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .exp-company-meta { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+  .exp-roles { margin-left: 64px; }
+  .exp-role { position: relative; padding: 14px 64px 14px 0; border-top: 1px solid var(--border); }
+  .exp-role .entry-desc { margin-top: 6px; }
+  .exp-role .entry-actions { top: 10px; }
   .entry-skill-badge { background: #f3f2ef; border: 1px solid rgba(0,0,0,.1); font-size: 12px; }
   .post-composer { padding: 16px 24px; }
   .composer-btn { border-radius: 24px; }
@@ -387,6 +401,7 @@ Always looking to connect with fellow professionals and explore new opportunitie
     <div class="section-header">
       <span class="section-title">Experience</span>
       <div class="section-header-actions">
+        <button class="section-toggle" id="expGroupBtn" onclick="toggleExperienceGrouping()" aria-pressed="true">Group by company</button>
         <button class="icon-btn" onclick="openAddEntry('experience')" title="Add">
           <svg width="20" height="20"><use href="#ic-plus"/></svg>
         </button>
@@ -500,7 +515,6 @@ Always looking to connect with fellow professionals and explore new opportunitie
     </div>
     <div class="section-list" id="projectList">
       <div class="entry-item" data-id="proj1">
-        <div class="entry-logo" onclick="triggerLogoUpload('proj1')"></div>
         <div class="entry-content">
           <div class="entry-title">CloudMetrics Dashboard</div>
           <div class="entry-sub">Personal Project</div>
@@ -773,6 +787,7 @@ Always looking to connect with fellow professionals and explore new opportunitie
 const LS_KEY='linkedup.state.v1';
 const S = { avatar:'', name:'Full Name', headline:'Senior Software Engineer at TechCorp Solutions', postN:10, entryN:100 };
 let curType=null, curId=null, curLogoTarget=null, pendingImg='';
+let groupExperience=localStorage.getItem('linkedup.groupExperience')!=='0';
 const entries = {};
 ['exp1','exp2','edu1','lic1','proj1'].forEach(id => { entries[id] = readDOM(id); });
 
@@ -814,8 +829,7 @@ function toggleEntryDesc(btn){
 function refreshEntryClamps(){
   ['experienceList','educationList'].forEach(listId=>{
     const list=$(listId); if(!list) return;
-    list.querySelectorAll('.entry-item').forEach(item=>{
-      const desc=item.querySelector('.entry-desc'); if(!desc) return;
+    list.querySelectorAll('.entry-desc').forEach(desc=>{
       desc.classList.add('clamp');
       let btn=desc.nextElementSibling;
       if(!btn||!btn.classList.contains('entry-more')){
@@ -831,6 +845,76 @@ function refreshEntryClamps(){
       }
     });
   });
+}
+
+function experienceCompanyKey(d){
+  return ((d.sub||'').split(' · ')[0]||'').trim()||'Unspecified';
+}
+
+function experienceGroupHTML(g){
+  const first=entries[g.ids[0]]||{};
+  const company=experienceCompanyKey(first);
+  const types=[];
+  g.ids.forEach(id=>{
+    const t=(entries[id]?.sub||'').split(' · ').slice(1).join(' · ').trim();
+    if(t&&!types.includes(t)) types.push(t);
+  });
+  const logo=first.logo?`<img src="${A(first.logo)}" alt="">`:`<span class="entry-logo-fallback">${H(initials(company))}</span>`;
+  const roles=g.ids.map(id=>{
+    const e=entries[id]; if(!e) return '';
+    return `<div class="exp-role" data-id="${A(id)}">
+      <div class="entry-actions">
+        <button class="icon-btn" onclick="editEntry('${A(id)}')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
+        <button class="icon-btn" onclick="deleteEntry('${A(id)}')" title="Delete" style="color:var(--text-sub)"><svg width="16" height="16"><use href="#ic-trash"/></svg></button>
+      </div>
+      <div class="entry-title">${H(e.title)}</div>
+      <div class="entry-date">${H(e.date)}</div>
+      ${e.desc?`<div class="entry-desc">${H(e.desc)}</div>`:''}
+      ${(e.skills||[]).length?`<div class="entry-skills">${e.skills.map(s=>`<span class="entry-skill-badge">${H(s)}</span>`).join('')}</div>`:''}
+    </div>`;
+  }).join('');
+  return `<div class="exp-group">
+    <div class="exp-company">
+      <div class="exp-company-logo">${logo}</div>
+      <div class="exp-company-info">
+        <div class="entry-title">${H(company)}</div>
+        <div class="exp-company-meta">${H(types.join(', '))}${types.length?' · ':''}${g.ids.length} roles</div>
+      </div>
+    </div>
+    <div class="exp-roles">${roles}</div>
+  </div>`;
+}
+
+function experienceHTML(ids){
+  if(!groupExperience) return ids.map(id=>entries[id]?entryHTML(id,entries[id]):'').join('');
+  const groups=[], index={};
+  ids.forEach(id=>{
+    const e=entries[id]; if(!e) return;
+    const key=experienceCompanyKey(e);
+    if(!index[key]){ index[key]={ids:[]}; groups.push(index[key]); }
+    index[key].ids.push(id);
+  });
+  return groups.map(g=>g.ids.length>1?experienceGroupHTML(g):g.ids.map(id=>entryHTML(id,entries[id])).join('')).join('');
+}
+
+function renderExperience(){
+  const list=$('experienceList'); if(!list) return;
+  const ids=[...list.querySelectorAll('[data-id]')].map(el=>el.dataset.id);
+  list.innerHTML=experienceHTML(ids);
+  refreshEntryClamps();
+  updateGroupButton();
+}
+
+function updateGroupButton(){
+  const btn=$('expGroupBtn'); if(!btn) return;
+  btn.textContent=groupExperience?'Group by company':'Show individually';
+  btn.setAttribute('aria-pressed',groupExperience?'true':'false');
+}
+
+function toggleExperienceGrouping(){
+  groupExperience=!groupExperience;
+  try{ localStorage.setItem('linkedup.groupExperience',groupExperience?'1':'0'); }catch(e){}
+  renderExperience();
 }
 
 function toggleAbout(){
@@ -865,12 +949,14 @@ function readDOM(id){
   };
 }
 
-function entryHTML(id,d){
+function entryHTML(id,d,opts){
+  const hideLogo=!!(opts&&opts.hideLogo);
   const logo=d.logo?`<img src="${A(d.logo)}" alt="">`:`<span class="entry-logo-fallback">${H(initials(d.title))}</span>`;
+  const logoBlock=hideLogo?'':`<div class="entry-logo" onclick="triggerLogoUpload('${A(id)}')">${logo}</div>`;
   const skills=(d.skills||[]).length
     ? `<div>${d.skills.map(s=>`<span class="entry-skill-badge">${H(s)}</span>`).join('')}</div>`:'';
   return `<div class="entry-item" data-id="${A(id)}">
-    <div class="entry-logo" onclick="triggerLogoUpload('${A(id)}')">${logo}</div>
+    ${logoBlock}
     <div class="entry-content">
       <div class="entry-title">${H(d.title)}</div>
       <div class="entry-sub">${H(d.sub)}</div>
@@ -1059,7 +1145,7 @@ const EC={
     {id:'e_end',label:'Expiration Date',type:'text',ph:'e.g. Jun 2025 or No expiration'},
     {id:'e_credid',label:'Credential ID',type:'text',ph:'e.g. AWS-PSA-00123456'},
   ]},
-  project:{ title:'Project', list:'projectList', fields:[
+  project:{ title:'Project', list:'projectList', showLogo:false, fields:[
     {id:'e_title',label:'Project Name',type:'text',ph:'e.g. CloudMetrics Dashboard'},
     {id:'e_org',label:'Associated With',type:'text',ph:'e.g. Personal Project'},
     {id:'e_start',label:'Start Date',type:'text',ph:'e.g. Jan 2023'},
@@ -1106,14 +1192,17 @@ function fval(fid, d){
 
 function renderForm(cfg, d){
   const logo=d.logo||'';
-  let h=`<div>
-    <label>Logo / Image</label>
-    <div class="logo-upload-area" onclick="triggerUpload('eLogo')" id="eLogoArea">
-      ${logo?`<img src="${logo}" class="logo-preview">`:`<svg width="18" height="18"><use href="#ic-upload"/></svg><span>Upload logo (optional)</span>`}
-    </div>
-    <input type="file" id="eLogo" accept="image/*" class="hidden" onchange="prevEntryLogo(event)">
-    <input type="hidden" id="e_logo" value="${A(logo)}">
-  </div>`;
+  let h='';
+  if(cfg.showLogo!==false){
+    h+=`<div>
+      <label>Logo / Image</label>
+      <div class="logo-upload-area" onclick="triggerUpload('eLogo')" id="eLogoArea">
+        ${logo?`<img src="${logo}" class="logo-preview">`:`<svg width="18" height="18"><use href="#ic-upload"/></svg><span>Upload logo (optional)</span>`}
+      </div>
+      <input type="file" id="eLogo" accept="image/*" class="hidden" onchange="prevEntryLogo(event)">
+      <input type="hidden" id="e_logo" value="${A(logo)}">
+    </div>`;
+  }
   cfg.fields.forEach(f=>{
     h+='<div>';
     if(f.type==='ta'){
@@ -1158,7 +1247,7 @@ function rmTag(btn,val){
 }
 
 function saveEntry(){
-  const cfg=EC[curType], logo=$('e_logo')?.value||'';
+  const cfg=EC[curType], logo=curType==='project'?'':($('e_logo')?.value||'');
   let title='',sub='',date='',desc='',skills=[];
   if(curType==='experience'){
     title=$('e_title')?.value||'';
@@ -1189,21 +1278,25 @@ function saveEntry(){
   }
   if(curId){
     const el=document.querySelector(`[data-id="${curId}"]`);
-    if(el) el.outerHTML=entryHTML(curId,{title,sub,date,desc,logo,skills});
+    if(el) el.outerHTML=entryHTML(curId,{title,sub,date,desc,logo,skills},{hideLogo:curType==='project'});
     entries[curId]={title,sub,date,desc,logo,skills};
   } else {
     const nid='e'+(++S.entryN);
-    $(cfg.list).insertAdjacentHTML('afterbegin',entryHTML(nid,{title,sub,date,desc,logo,skills}));
+    $(cfg.list).insertAdjacentHTML('afterbegin',entryHTML(nid,{title,sub,date,desc,logo,skills},{hideLogo:curType==='project'}));
     entries[nid]={title,sub,date,desc,logo,skills};
   }
-  refreshEntryClamps();
+  if(curType==='experience') renderExperience();
+  else refreshEntryClamps();
   persist();
   closeModal('entryModal');
 }
 function deleteEntry(id){
   if(!confirm('Delete this entry?')) return;
+  const inExperience=!!document.querySelector(`#experienceList [data-id="${id}"]`);
   document.querySelector(`[data-id="${id}"]`)?.remove();
   delete entries[id];
+  if(inExperience) renderExperience();
+  else refreshEntryClamps();
   persist();
 }
 function triggerLogoUpload(id){ curLogoTarget=id; $('logoUploadHidden').click(); }
@@ -1279,8 +1372,11 @@ function applyState(st){
   const sections=st.sections||{};
   ['experienceList','educationList','licenseList','projectList'].forEach(listId=>{
     const ids=Array.isArray(sections[listId])?sections[listId]:[];
-    $(listId).innerHTML=ids.map(id=>entries[id]?entryHTML(id,entries[id]):'').join('');
+    $(listId).innerHTML=listId==='experienceList'
+      ? experienceHTML(ids)
+      : ids.map(id=>entries[id]?entryHTML(id,entries[id],{hideLogo:listId==='projectList'}):'').join('');
   });
+  updateGroupButton();
   refreshEntryClamps();
   const posts=Array.isArray(st.posts)?st.posts:[];
   $('postList').innerHTML=posts.map(postHTML).join('');
@@ -1359,6 +1455,7 @@ function initPersistence(){
 initPersistence();
 refreshEntryClamps();
 refreshAboutClamp(true);
+updateGroupButton();
 
 window.addEventListener('resize',()=>{
   clearTimeout(window.__entryClampTimer);
