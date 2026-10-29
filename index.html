@@ -176,6 +176,11 @@
   .entry-sub { font-size: 14px; }
   .entry-date { font-size: 13px; color: rgba(0,0,0,.6); }
   .entry-desc { font-size: 14px; }
+  .entry-desc.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .entry-desc.clamp.expanded { display: block; -webkit-line-clamp: unset; overflow: visible; }
+  .entry-more { display: none; margin-top: 4px; padding: 0; border: none; background: none; color: rgba(0,0,0,.6); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .entry-more.visible { display: inline-block; }
+  .entry-more:hover { color: #0a66c2; text-decoration: underline; }
   .entry-skill-badge { background: #f3f2ef; border: 1px solid rgba(0,0,0,.1); font-size: 12px; }
   .post-composer { padding: 16px 24px; }
   .composer-btn { border-radius: 24px; }
@@ -793,6 +798,35 @@ function updateStrength(){
   label.textContent=score>=80?'All-star':score>=50?'Intermediate':score>0?'Getting started':'Just starting';
 }
 
+function toggleEntryDesc(btn){
+  const desc=btn.previousElementSibling;
+  if(!desc) return;
+  const expanded=desc.classList.toggle('expanded');
+  btn.textContent=expanded?'Show less':'…more';
+}
+
+function refreshEntryClamps(){
+  ['experienceList','educationList'].forEach(listId=>{
+    const list=$(listId); if(!list) return;
+    list.querySelectorAll('.entry-item').forEach(item=>{
+      const desc=item.querySelector('.entry-desc'); if(!desc) return;
+      desc.classList.add('clamp');
+      let btn=desc.nextElementSibling;
+      if(!btn||!btn.classList.contains('entry-more')){
+        btn=document.createElement('button');
+        btn.type='button';
+        btn.className='entry-more';
+        btn.textContent='…more';
+        btn.addEventListener('click',function(){ toggleEntryDesc(this); });
+        desc.after(btn);
+      }
+      if(!desc.classList.contains('expanded')){
+        btn.classList.toggle('visible',desc.scrollHeight>desc.clientHeight+1);
+      }
+    });
+  });
+}
+
 function readDOM(id){
   const el=document.querySelector(`[data-id="${id}"]`); if(!el) return {};
   return {
@@ -1126,29 +1160,16 @@ function saveEntry(){
     desc=$('e_desc')?.value||'';
     const sh=$('e_skills_h'); if(sh?.value) skills=sh.value.split(',').filter(Boolean);
   }
-  const logoHtml=logo?`<img src="${logo}" alt="">`:'';
-  const skHtml=skills.length?`<div>${skills.map(s=>`<span class="entry-skill-badge">${H(s)}</span>`).join('')}</div>`:'';
-
   if(curId){
     const el=document.querySelector(`[data-id="${curId}"]`);
-    if(el){
-      el.querySelector('.entry-logo').innerHTML=logoHtml;
-      el.querySelector('.entry-title').textContent=title;
-      el.querySelector('.entry-sub').textContent=sub;
-      el.querySelector('.entry-date').textContent=date;
-      const de=el.querySelector('.entry-desc'); if(de) de.textContent=desc;
-      // refresh skills
-      const ec=el.querySelector('.entry-content');
-      const oldSk=ec.querySelector('div:last-child');
-      if(oldSk && oldSk.querySelector('.entry-skill-badge')) oldSk.remove();
-      if(skHtml){ const d=document.createElement('div'); d.innerHTML=skHtml; ec.appendChild(d.firstChild); }
-    }
+    if(el) el.outerHTML=entryHTML(curId,{title,sub,date,desc,logo,skills});
     entries[curId]={title,sub,date,desc,logo,skills};
   } else {
     const nid='e'+(++S.entryN);
     $(cfg.list).insertAdjacentHTML('afterbegin',entryHTML(nid,{title,sub,date,desc,logo,skills}));
     entries[nid]={title,sub,date,desc,logo,skills};
   }
+  refreshEntryClamps();
   persist();
   closeModal('entryModal');
 }
@@ -1233,6 +1254,7 @@ function applyState(st){
     const ids=Array.isArray(sections[listId])?sections[listId]:[];
     $(listId).innerHTML=ids.map(id=>entries[id]?entryHTML(id,entries[id]):'').join('');
   });
+  refreshEntryClamps();
   const posts=Array.isArray(st.posts)?st.posts:[];
   $('postList').innerHTML=posts.map(postHTML).join('');
   S.postN=Math.max(10,st.counters?.postN||10,...posts.map(x=>parseInt(String(x.id).replace(/\D/g,''))||0));
@@ -1307,6 +1329,12 @@ function initPersistence(){
   updateStrength();
 }
 initPersistence();
+refreshEntryClamps();
+
+window.addEventListener('resize',()=>{
+  clearTimeout(window.__entryClampTimer);
+  window.__entryClampTimer=setTimeout(refreshEntryClamps,150);
+});
 
 const TPL_KEY='linkedup.templates.v1';
 let templates=[];
