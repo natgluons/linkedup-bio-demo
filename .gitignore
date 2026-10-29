@@ -1,0 +1,4 @@
+storage/
+*.local.json
+profile-data*.json
+templates.local.json
