@@ -67,6 +67,7 @@
   .entry-title { font-size: 14px; font-weight: 700; }
   .entry-sub { font-size: 13px; color: var(--text); margin-top: 1px; }
   .entry-date { font-size: 12px; color: var(--text-sub); margin-top: 1px; }
+  .entry-loc { font-size: 12px; color: var(--text-sub); margin-top: 1px; }
   .entry-desc { font-size: 13px; color: var(--text); margin-top: 5px; line-height: 1.55; white-space: pre-wrap; }
   .entry-skill-badge { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 12px; border: 1px solid var(--border); color: var(--text); margin: 4px 4px 0 0; }
   .entry-actions { display: flex; gap: 2px; position: absolute; right: 0; top: 10px; opacity: 0; transition: opacity .15s; }
@@ -126,6 +127,30 @@
   .tag button { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--blue); line-height: 1; padding: 0; }
   .tags-input input { border: none; outline: none; font-family: inherit; font-size: 13px; min-width: 120px; flex: 1; padding: 2px 4px; background: transparent; }
   .char-count { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px; }
+  /* EXPERIENCE FORM */
+  #entryModal .modal { max-width: 680px; }
+  .exp-form { display: flex; flex-direction: column; gap: 18px; }
+  .notify-banner { background: #eef3f8; border-radius: 4px; padding: 16px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .notify-title { font-weight: 700; font-size: 15px; color: rgba(0,0,0,.9); }
+  .notify-sub { font-size: 13px; color: rgba(0,0,0,.6); margin-top: 6px; line-height: 1.45; }
+  .notify-sub a { color: #0a66c2; text-decoration: none; font-weight: 600; }
+  .notify-switch { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(0,0,0,.6); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+  .notify-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch { position: relative; width: 42px; height: 24px; border-radius: 12px; background: #7f8b96; transition: background .15s; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; }
+  .notify-switch input:checked + .switch { background: #2e7d5b; }
+  .notify-switch input:checked + .switch::after { transform: translateX(18px); }
+  .exp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+  .exp-grid .full { grid-column: 1 / -1; }
+  .exp-form label { font-weight: 400; color: rgba(0,0,0,.6); font-size: 14px; margin-bottom: 6px; }
+  .exp-form .req { color: #b24020; margin-left: 2px; }
+  .check-row { display: flex; align-items: center; gap: 10px; margin: 0; cursor: pointer; color: rgba(0,0,0,.9); }
+  .check-row input { width: 20px; height: 20px; accent-color: #0a66c2; cursor: pointer; }
+  .highlights-heading { font-size: 16px; font-weight: 600; color: rgba(0,0,0,.9); margin-bottom: 8px; }
+  .exp-form #e_desc { min-height: 120px; }
+  .exp-date-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .exp-date-col.month { flex: 0 1 190px; }
+  .exp-date-col.year { flex: 0 1 150px; }
   .hidden { display: none !important; }
 </style>
 <style>
@@ -175,6 +200,7 @@
   .entry-title { font-size: 16px; }
   .entry-sub { font-size: 14px; }
   .entry-date { font-size: 13px; color: rgba(0,0,0,.6); }
+  .entry-loc { font-size: 13px; color: rgba(0,0,0,.6); }
   .entry-desc { font-size: 14px; }
   .entry-desc.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .entry-desc.clamp.expanded { display: block; -webkit-line-clamp: unset; overflow: visible; }
@@ -417,6 +443,7 @@ Always looking to connect with fellow professionals and explore new opportunitie
           <div class="entry-title">Senior Software Engineer</div>
           <div class="entry-sub">TechCorp Solutions · Full-time</div>
           <div class="entry-date">Jan 2021 – Present · 3 yrs 2 mos</div>
+          <div class="entry-loc" data-loc="San Francisco, California, United States" data-loctype="Hybrid">San Francisco, California, United States · Hybrid</div>
           <div class="entry-desc">Led development of microservices architecture, reducing system latency by 40%. Mentored a team of 5 junior developers and collaborated with product teams across 3 time zones.</div>
         </div>
         <div class="entry-actions">
@@ -430,6 +457,7 @@ Always looking to connect with fellow professionals and explore new opportunitie
           <div class="entry-title">Software Engineer</div>
           <div class="entry-sub">Nexaflow Inc. · Full-time</div>
           <div class="entry-date">Mar 2018 – Dec 2020 · 2 yrs 10 mos</div>
+          <div class="entry-loc" data-loc="San Francisco Bay Area" data-loctype="Remote">San Francisco Bay Area · Remote</div>
           <div class="entry-desc">Developed and maintained RESTful APIs serving 500K+ daily users. Improved CI/CD pipelines and reduced deployment time by 60%.</div>
         </div>
         <div class="entry-actions">
@@ -785,6 +813,11 @@ Always looking to connect with fellow professionals and explore new opportunitie
 <script>
 // STATE
 const LS_KEY='linkedup.state.v1';
+const DEFAULT_COMPANY_LOGO='assets/empty-company-profile.jpeg';
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const LOCATION_TYPES=['On-site','Remote','Hybrid'];
+const EMPLOYMENT_TYPES=['Full-time','Part-time','Freelance','Contract','Internship','Self-employed','Other'];
+const FOUND_OPTIONS=['LinkedIn','Company website','Job board','Referral','Other'];
 const S = { avatar:'', name:'Full Name', headline:'Senior Software Engineer at TechCorp Solutions', postN:10, entryN:100 };
 let curType=null, curId=null, curLogoTarget=null, pendingImg='';
 let groupExperience=localStorage.getItem('linkedup.groupExperience')!=='0';
@@ -859,9 +892,10 @@ function experienceGroupHTML(g){
     const t=(entries[id]?.sub||'').split(' · ').slice(1).join(' · ').trim();
     if(t&&!types.includes(t)) types.push(t);
   });
-  const logo=first.logo?`<img src="${A(first.logo)}" alt="">`:`<span class="entry-logo-fallback">${H(initials(company))}</span>`;
+  const logo=first.logo?`<img src="${A(first.logo)}" alt="">`:`<img src="${DEFAULT_COMPANY_LOGO}" alt="">`;
   const roles=g.ids.map(id=>{
     const e=entries[id]; if(!e) return '';
+    const locText=locationText(e);
     return `<div class="exp-role" data-id="${A(id)}">
       <div class="entry-actions">
         <button class="icon-btn" onclick="editEntry('${A(id)}')" title="Edit"><svg width="16" height="16"><use href="#ic-pencil"/></svg></button>
@@ -869,6 +903,7 @@ function experienceGroupHTML(g){
       </div>
       <div class="entry-title">${H(e.title)}</div>
       <div class="entry-date">${H(e.date)}</div>
+      ${locText?`<div class="entry-loc" data-loc="${A(e.loc||'')}" data-loctype="${A(e.locType||'')}">${H(locText)}</div>`:''}
       ${e.desc?`<div class="entry-desc">${H(e.desc)}</div>`:''}
       ${(e.skills||[]).length?`<div class="entry-skills">${e.skills.map(s=>`<span class="entry-skill-badge">${H(s)}</span>`).join('')}</div>`:''}
     </div>`;
@@ -886,7 +921,8 @@ function experienceGroupHTML(g){
 }
 
 function experienceHTML(ids){
-  if(!groupExperience) return ids.map(id=>entries[id]?entryHTML(id,entries[id]):'').join('');
+  const opts={defaultLogo:true};
+  if(!groupExperience) return ids.map(id=>entries[id]?entryHTML(id,entries[id],opts):'').join('');
   const groups=[], index={};
   ids.forEach(id=>{
     const e=entries[id]; if(!e) return;
@@ -894,7 +930,7 @@ function experienceHTML(ids){
     if(!index[key]){ index[key]={ids:[]}; groups.push(index[key]); }
     index[key].ids.push(id);
   });
-  return groups.map(g=>g.ids.length>1?experienceGroupHTML(g):g.ids.map(id=>entryHTML(id,entries[id])).join('')).join('');
+  return groups.map(g=>g.ids.length>1?experienceGroupHTML(g):g.ids.map(id=>entryHTML(id,entries[id],opts)).join('')).join('');
 }
 
 function renderExperience(){
@@ -939,10 +975,13 @@ function refreshAboutClamp(reset){
 
 function readDOM(id){
   const el=document.querySelector(`[data-id="${id}"]`); if(!el) return {};
+  const locEl=el.querySelector('.entry-loc');
   return {
     title: el.querySelector('.entry-title')?.textContent||'',
     sub: el.querySelector('.entry-sub')?.textContent||'',
     date: el.querySelector('.entry-date')?.textContent||'',
+    loc: locEl?.getAttribute('data-loc')||locEl?.textContent||'',
+    locType: locEl?.getAttribute('data-loctype')||'',
     desc: el.querySelector('.entry-desc')?.textContent||'',
     logo: el.querySelector('.entry-logo img')?.src||'',
     skills: [...el.querySelectorAll('.entry-skill-badge')].map(s=>s.textContent),
@@ -951,7 +990,12 @@ function readDOM(id){
 
 function entryHTML(id,d,opts){
   const hideLogo=!!(opts&&opts.hideLogo);
-  const logo=d.logo?`<img src="${A(d.logo)}" alt="">`:`<span class="entry-logo-fallback">${H(initials(d.title))}</span>`;
+  const locText=locationText(d);
+  const logo=d.logo
+    ? `<img src="${A(d.logo)}" alt="">`
+    : (opts&&opts.defaultLogo)
+      ? `<img src="${DEFAULT_COMPANY_LOGO}" alt="">`
+      : `<span class="entry-logo-fallback">${H(initials(d.title))}</span>`;
   const logoBlock=hideLogo?'':`<div class="entry-logo" onclick="triggerLogoUpload('${A(id)}')">${logo}</div>`;
   const skills=(d.skills||[]).length
     ? `<div>${d.skills.map(s=>`<span class="entry-skill-badge">${H(s)}</span>`).join('')}</div>`:'';
@@ -961,6 +1005,7 @@ function entryHTML(id,d,opts){
       <div class="entry-title">${H(d.title)}</div>
       <div class="entry-sub">${H(d.sub)}</div>
       <div class="entry-date">${H(d.date)}</div>
+      ${locText?`<div class="entry-loc" data-loc="${A(d.loc||'')}" data-loctype="${A(d.locType||'')}">${H(locText)}</div>`:''}
       ${d.desc?`<div class="entry-desc">${H(d.desc)}</div>`:''}
       ${skills}
     </div>
@@ -1161,17 +1206,53 @@ function typeOf(el){
 }
 function openAddEntry(type){
   curType=type; curId=null;
-  $('entryModalTitle').textContent='Add '+EC[type].title;
+  $('entryModalTitle').textContent=type==='experience'?'Add a role to your profile':'Add '+EC[type].title;
   renderForm(EC[type],{});
   openModal('entryModal');
 }
 function editEntry(id){
   const el=document.querySelector(`[data-id="${id}"]`);
   curType=typeOf(el); curId=id;
-  $('entryModalTitle').textContent='Edit '+EC[curType].title;
+  $('entryModalTitle').textContent=curType==='experience'?'Edit role':'Edit '+EC[curType].title;
   renderForm(EC[curType], entries[id]||{});
   openModal('entryModal');
 }
+
+function locationText(d){
+  return [d.loc,d.locType].filter(Boolean).join(' · ');
+}
+function fullMonth(t){
+  const key=String(t||'').slice(0,3).toLowerCase();
+  return MONTHS.find(m=>m.slice(0,3).toLowerCase()===key)||'';
+}
+function parseExperienceDate(date){
+  const raw=String(date||'');
+  const parts=[...raw.matchAll(/\b([A-Za-z]{3,9})\.?\s+(\d{4})\b/g)]
+    .map(m=>({month:fullMonth(m[1]),year:m[2]}))
+    .filter(p=>p.month);
+  return {start:parts[0]||null,end:parts[1]||null,current:/\b(present|current)\b/i.test(raw)};
+}
+function monthOptions(selected){
+  return MONTHS.map(m=>`<option value="${m}"${m===selected?' selected':''}>${m}</option>`).join('');
+}
+function selectWithPlaceholder(values,val){
+  const list=[...values];
+  if(val&&!list.includes(val)) list.push(val);
+  return `<option value="">Please select</option>`+list.map(v=>`<option value="${A(v)}"${v===val?' selected':''}>${H(v)}</option>`).join('');
+}
+function yearOptions(selected){
+  const nowY=new Date().getFullYear();
+  const sel=parseInt(selected,10)||nowY;
+  const max=Math.max(nowY+10,sel);
+  let opts='';
+  for(let y=max;y>=1960;y--) opts+=`<option value="${y}"${y===sel?' selected':''}>${y}</option>`;
+  return opts;
+}
+function toggleNotifyLabel(cb){ $('notifyState').textContent=cb.checked?'On':'Off'; }
+function toggleCurrentRole(cb){
+  document.querySelectorAll('#entryModalBody .end-only').forEach(el=>el.classList.toggle('hidden',cb.checked));
+}
+function updateDescCount(el){ $('e_desc_count').textContent=el.value.length.toLocaleString(); }
 
 function fval(fid, d){
   const m={
@@ -1185,12 +1266,13 @@ function fval(fid, d){
     e_credid:(d.desc||'').replace('Credential ID: ',''),
     e_start:(d.date||'').replace(/Issued /,'').split(/[–·]/)[0].trim(),
     e_end:(d.date||'').includes('–')?(d.date||'').split('–')[1]?.trim():((d.date||'').includes('Expires')?(d.date||'').split('Expires')[1]?.trim():''),
-    e_loc:'', e_desc:d.desc||'',
+    e_loc:d.loc||'', e_desc:d.desc||'',
   };
   return m[fid]!==undefined?m[fid]:'';
 }
 
 function renderForm(cfg, d){
+  if(cfg===EC.experience){ renderExperienceForm(d||{}); return; }
   const logo=d.logo||'';
   let h='';
   if(cfg.showLogo!==false){
@@ -1225,6 +1307,93 @@ function renderForm(cfg, d){
   });
   $('entryModalBody').innerHTML=h;
 }
+function renderExperienceForm(d){
+  const now=new Date();
+  const parsed=parseExperienceDate(d.date);
+  const isNew=!d.title&&!d.sub;
+  const start=parsed.start||{month:MONTHS[now.getMonth()],year:String(now.getFullYear())};
+  const end=parsed.end||{month:MONTHS[now.getMonth()],year:String(now.getFullYear())};
+  const current=isNew?true:parsed.current;
+  const company=(d.sub||'').split('·')[0].trim();
+  const empType=(d.sub||'').split('·')[1]?.trim()||'';
+  const tags=d.skills||[];
+  $('entryModalBody').innerHTML=`
+  <div class="exp-form">
+    <div class="notify-banner">
+      <div>
+        <div class="notify-title">Notify network</div>
+        <div class="notify-sub">Notify your network of key profile changes and work anniversaries. <a href="#" onclick="return false">Learn more</a></div>
+      </div>
+      <label class="notify-switch">
+        <span id="notifyState">On</span>
+        <input type="checkbox" id="notifyNetwork" checked onchange="toggleNotifyLabel(this)">
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+    </div>
+    <div class="exp-grid">
+      <div>
+        <label>Job title<span class="req">*</span></label>
+        <input type="text" id="e_title" value="${A(d.title||'')}" placeholder="Example: Senior Product Manager">
+      </div>
+      <div>
+        <label>Organization<span class="req">*</span></label>
+        <input type="text" id="e_company" value="${A(company)}" placeholder="Example: Microsoft">
+      </div>
+      <div>
+        <label>Location</label>
+        <input type="text" id="e_loc" value="${A(d.loc||'')}" placeholder="City or region">
+      </div>
+      <div>
+        <label>Location type</label>
+        <select id="e_loctype">${selectWithPlaceholder(LOCATION_TYPES,d.locType||'')}</select>
+      </div>
+      <div>
+        <label>Employment type</label>
+        <select id="e_emptype">${selectWithPlaceholder(EMPLOYMENT_TYPES,empType)}</select>
+      </div>
+      <div>
+        <label>Where did you find this job</label>
+        <select id="e_found">${selectWithPlaceholder(FOUND_OPTIONS,d.found||'')}</select>
+      </div>
+      <div class="full">
+        <label class="check-row"><input type="checkbox" id="e_current" ${current?'checked':''} onchange="toggleCurrentRole(this)"><span>I currently work here</span></label>
+      </div>
+      <div class="full exp-date-row">
+        <div class="exp-date-col month">
+          <label>Start month</label>
+          <select id="e_start_month">${monthOptions(start.month)}</select>
+        </div>
+        <div class="exp-date-col year">
+          <label>Start year<span class="req">*</span></label>
+          <select id="e_start_year">${yearOptions(start.year)}</select>
+        </div>
+        <div class="exp-date-col month end-only${current?' hidden':''}">
+          <label>End month</label>
+          <select id="e_end_month">${monthOptions(end.month)}</select>
+        </div>
+        <div class="exp-date-col year end-only${current?' hidden':''}">
+          <label>End year</label>
+          <select id="e_end_year">${yearOptions(end.year)}</select>
+        </div>
+      </div>
+      <div class="full">
+        <div class="highlights-heading">Highlights</div>
+        <textarea id="e_desc" rows="5" maxlength="2000" placeholder="Projects, problems you solved, or results you achieved" oninput="updateDescCount(this)">${H(d.desc||'')}</textarea>
+        <div class="char-count"><span id="e_desc_count">${(d.desc||'').length.toLocaleString()}</span>/2,000</div>
+      </div>
+      <div class="full">
+        <label>Skills</label>
+        <div class="tags-input" id="tagsWrap">
+          ${tags.map(t=>`<span class="tag">${H(t)}<button onclick="rmTag(this,'${A(t)}')">&#x2715;</button></span>`).join('')}
+          <input type="text" id="tagsIn" placeholder="Add skill..." onkeydown="addTag(event)">
+        </div>
+        <input type="hidden" id="e_skills_h" value="${A(tags.join(','))}">
+      </div>
+    </div>
+    <input type="hidden" id="e_logo" value="${A(d.logo||'')}">
+  </div>`;
+}
+
 function prevEntryLogo(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
@@ -1248,14 +1417,20 @@ function rmTag(btn,val){
 
 function saveEntry(){
   const cfg=EC[curType], logo=curType==='project'?'':($('e_logo')?.value||'');
-  let title='',sub='',date='',desc='',skills=[];
+  let title='',sub='',date='',desc='',loc='',locType='',found='',skills=[];
   if(curType==='experience'){
     title=$('e_title')?.value||'';
     const co=$('e_company')?.value||'', et=$('e_emptype')?.value||'';
     sub=co+(et?' · '+et:'');
-    const sd=$('e_start')?.value||'', ed=$('e_end')?.value||'';
-    date=sd+(ed?' – '+ed:'');
+    loc=$('e_loc')?.value||'';
+    locType=$('e_loctype')?.value||'';
+    found=$('e_found')?.value||'';
+    const sm=$('e_start_month')?.value||'', sy=$('e_start_year')?.value||'';
+    const em=$('e_end_month')?.value||'', ey=$('e_end_year')?.value||'';
+    date=sm&&sy?sm.slice(0,3)+' '+sy:'';
+    if(date) date+=$('e_current')?.checked?' – Present':(em&&ey?' – '+em.slice(0,3)+' '+ey:'');
     desc=$('e_desc')?.value||'';
+    const sh=$('e_skills_h'); if(sh?.value) skills=sh.value.split(',').filter(Boolean);
   } else if(curType==='education'){
     title=$('e_school')?.value||'';
     const dg=$('e_degree')?.value||'', fi=$('e_field')?.value||'';
@@ -1276,14 +1451,15 @@ function saveEntry(){
     desc=$('e_desc')?.value||'';
     const sh=$('e_skills_h'); if(sh?.value) skills=sh.value.split(',').filter(Boolean);
   }
+  const opts={hideLogo:curType==='project',defaultLogo:curType==='experience'};
   if(curId){
     const el=document.querySelector(`[data-id="${curId}"]`);
-    if(el) el.outerHTML=entryHTML(curId,{title,sub,date,desc,logo,skills},{hideLogo:curType==='project'});
-    entries[curId]={title,sub,date,desc,logo,skills};
+    if(el) el.outerHTML=entryHTML(curId,{title,sub,date,loc,locType,found,desc,logo,skills},opts);
+    entries[curId]={title,sub,date,loc,locType,found,desc,logo,skills};
   } else {
     const nid='e'+(++S.entryN);
-    $(cfg.list).insertAdjacentHTML('afterbegin',entryHTML(nid,{title,sub,date,desc,logo,skills},{hideLogo:curType==='project'}));
-    entries[nid]={title,sub,date,desc,logo,skills};
+    $(cfg.list).insertAdjacentHTML('afterbegin',entryHTML(nid,{title,sub,date,loc,locType,found,desc,logo,skills},opts));
+    entries[nid]={title,sub,date,loc,locType,found,desc,logo,skills};
   }
   if(curType==='experience') renderExperience();
   else refreshEntryClamps();
@@ -1453,6 +1629,7 @@ function initPersistence(){
   updateStrength();
 }
 initPersistence();
+renderExperience();
 refreshEntryClamps();
 refreshAboutClamp(true);
 updateGroupButton();
@@ -1496,6 +1673,9 @@ function templateToState(raw){
     title:e.title||'',
     sub:[e.company,e.employmentType].filter(Boolean).join(' · '),
     date:[e.start,e.end].filter(Boolean).join(' – '),
+    loc:e.location||'',
+    locType:e.locationType||'',
+    found:e.foundVia||'',
     desc:e.desc||'',
     logo:e.logo||'',
     skills:Array.isArray(e.skills)?e.skills:[],
